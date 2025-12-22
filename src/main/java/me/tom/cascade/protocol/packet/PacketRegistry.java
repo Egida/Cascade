@@ -9,6 +9,7 @@ import me.tom.cascade.protocol.packet.packets.c2s.HandshakePacket;
 import me.tom.cascade.protocol.packet.packets.c2s.LoginStartPacket;
 import me.tom.cascade.protocol.packet.packets.c2s.PingRequestPacket;
 import me.tom.cascade.protocol.packet.packets.c2s.StatusRequestPacket;
+import me.tom.cascade.protocol.packet.packets.s2c.EncryptionResponsePacket;
 import me.tom.cascade.protocol.packet.packets.s2c.PongResponsePacket;
 import me.tom.cascade.protocol.packet.packets.s2c.StatusResponsePacket;
 
@@ -30,6 +31,7 @@ public class PacketRegistry {
         register(statusPackets, statusIds, 0x01, PingRequestPacket.class);
         
         register(loginPackets, loginIds, 0x00, LoginStartPacket.class);
+        register(loginPackets, loginIds, 0x01, EncryptionResponsePacket.class);
 
         statusIds.put(StatusResponsePacket.class, 0x00);
         statusIds.put(PongResponsePacket.class, 0x01);
