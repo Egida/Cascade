@@ -4,6 +4,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import me.tom.cascade.net.handlers.ConnectionHandler;
 import me.tom.cascade.net.handlers.HandshakeHandler;
+import me.tom.cascade.net.handlers.LoginStartHandler;
 import me.tom.cascade.net.handlers.PingRequestHandler;
 import me.tom.cascade.net.handlers.StatusRequestHandler;
 import me.tom.cascade.protocol.PacketDecoder;
@@ -21,6 +22,7 @@ public class PipelineInitializer extends ChannelInitializer<SocketChannel> {
             .addLast("handshake-handler", new HandshakeHandler())
             .addLast("status-request-handler", new StatusRequestHandler())
             .addLast("ping-request-handler", new PingRequestHandler())
+            .addLast("login-start-handler", new LoginStartHandler())
             .addLast("connection-handler", new ConnectionHandler());
     }
 }

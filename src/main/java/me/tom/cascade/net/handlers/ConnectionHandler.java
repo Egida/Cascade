@@ -9,8 +9,8 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) {
-        int length = msg.readableBytes();
-        int packetId = VarInt.read(msg);
+        msg.readableBytes();
+        VarInt.read(msg);
         msg.resetReaderIndex();
     }
 }
