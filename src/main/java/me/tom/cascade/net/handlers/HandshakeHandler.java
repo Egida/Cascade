@@ -4,7 +4,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import me.tom.cascade.protocol.ConnectionState;
 import me.tom.cascade.protocol.ProtocolAttributes;
-import me.tom.cascade.protocol.packet.packets.HandshakePacket;
+import me.tom.cascade.protocol.packet.packets.c2s.HandshakePacket;
 
 public class HandshakeHandler extends SimpleChannelInboundHandler<HandshakePacket> {
 

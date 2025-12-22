@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import me.tom.cascade.protocol.ConnectionState;
-import me.tom.cascade.protocol.packet.packets.HandshakePacket;
+import me.tom.cascade.protocol.packet.packets.c2s.HandshakePacket;
+import me.tom.cascade.protocol.packet.packets.c2s.StatusRequestPacket;
 
 public class PacketRegistry {
 
@@ -15,6 +16,7 @@ public class PacketRegistry {
 
     public PacketRegistry() {
         handshakePackets.put(0x00, HandshakePacket.class);
+        statusPackets.put(0x00, StatusRequestPacket.class);
     }
 
     public Class<? extends Packet> getPacket(int id, ConnectionState state) {

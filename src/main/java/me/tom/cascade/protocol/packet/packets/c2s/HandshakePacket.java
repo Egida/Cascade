@@ -1,4 +1,4 @@
-package me.tom.cascade.protocol.packet.packets;
+package me.tom.cascade.protocol.packet.packets.c2s;
 
 import io.netty.buffer.ByteBuf;
 import me.tom.cascade.net.types.VarInt;
