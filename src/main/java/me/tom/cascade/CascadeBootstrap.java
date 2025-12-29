@@ -25,16 +25,16 @@ public class CascadeBootstrap
 	
 
 	public static final String PROXY_STATUS_JSON;
+	public static final String INVALID_TOKEN_JSON;
 
 	static {
 	    try {
 	        PROXY_STATUS_JSON = new String(Files.readAllBytes(Paths.get("status.json")));
+	        INVALID_TOKEN_JSON = new String(Files.readAllBytes(Paths.get("invalid_token.json")));
 	    } catch (IOException e) {
 	        throw new RuntimeException("Failed to load status.json", e);
 	    }
 	}
-	
-	public static final String INVALID_TOKEN_JSON = "";
 			
 	
     public static void main( String[] args ) throws InterruptedException

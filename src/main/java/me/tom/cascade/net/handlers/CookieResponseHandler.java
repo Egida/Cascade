@@ -36,7 +36,7 @@ public class CookieResponseHandler extends SimpleChannelInboundHandler<CookieRes
         		&& Arrays.equals(packet.getPayload(), SECRET);
         boolean isTransfer = ctx.channel().attr(ProtocolAttributes.TRANSFER).get();
 
-    	if (!isValidToken) {
+    	if (!isValidToken && !isTransfer) {
     		byte[] verifyToken = new byte[4];
             new SecureRandom().nextBytes(verifyToken);
 
@@ -53,7 +53,7 @@ public class CookieResponseHandler extends SimpleChannelInboundHandler<CookieRes
     	    return;
     	}
     	
-    	if(isTransfer) {
+    	if(isTransfer && isValidToken) {
 	    	HandshakePacket handshake = ctx.channel().attr(ProtocolAttributes.HANDSHAKE_PACKET).get();
 		    LoginStartPacket loginStart = ctx.channel().attr(ProtocolAttributes.LOGIN_START_PACKET).get();
 	
@@ -81,5 +81,6 @@ public class CookieResponseHandler extends SimpleChannelInboundHandler<CookieRes
     	}
     	
     	ctx.writeAndFlush(new DisconnectPacket(CascadeBootstrap.INVALID_TOKEN_JSON));
+    	ctx.close();
     }
 }
