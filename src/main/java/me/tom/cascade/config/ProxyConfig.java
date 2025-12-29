@@ -15,4 +15,6 @@ public class ProxyConfig {
 	private String proxyDescription;
 	
 	private String jwtSecret;
+	
+	private boolean authVerification;
 }

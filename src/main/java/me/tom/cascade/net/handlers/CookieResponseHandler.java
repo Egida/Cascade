@@ -13,6 +13,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import me.tom.cascade.CascadeBootstrap;
+import me.tom.cascade.auth.GameProfile;
 import me.tom.cascade.net.handlers.forward.ClientToServerHandler;
 import me.tom.cascade.net.handlers.forward.ServerToClientHandler;
 import me.tom.cascade.protocol.ConnectionState;
@@ -21,6 +22,7 @@ import me.tom.cascade.protocol.codec.PacketDecoder;
 import me.tom.cascade.protocol.codec.PacketEncoder;
 import me.tom.cascade.protocol.codec.PacketFramer;
 import me.tom.cascade.protocol.packet.packets.clientbound.DisconnectPacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.LoginSuccessPacket;
 import me.tom.cascade.protocol.packet.packets.serverbound.CookieResponsePacket;
 import me.tom.cascade.protocol.packet.packets.serverbound.EncryptionRequestPacket;
 import me.tom.cascade.protocol.packet.packets.serverbound.HandshakePacket;
@@ -67,7 +69,7 @@ public class CookieResponseHandler extends SimpleChannelInboundHandler<CookieRes
                 "",
                 Crypto.KEY_PAIR.getPublic().getEncoded(),
                 verifyToken,
-                true
+                CascadeBootstrap.CONFIG.isAuthVerification()
         );
 
         ctx.writeAndFlush(encryptionRequest);

@@ -3,13 +3,17 @@ package me.tom.cascade.auth;
 import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import me.tom.cascade.protocol.types.Property;
 import me.tom.cascade.protocol.types.Utf8String;
 import me.tom.cascade.protocol.types.UuidType;
 import me.tom.cascade.protocol.types.VarInt;
 
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class GameProfile {
     public UUID id;
     public String name;

@@ -3,6 +3,7 @@ package me.tom.cascade.net.handlers;
 import java.net.InetSocketAddress;
 import java.security.PrivateKey;
 import java.util.Arrays;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -10,6 +11,7 @@ import javax.crypto.spec.SecretKeySpec;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
+import me.tom.cascade.CascadeBootstrap;
 import me.tom.cascade.auth.GameProfile;
 import me.tom.cascade.auth.MojangSessionService;
 import me.tom.cascade.crypto.AesDecryptHandler;
@@ -33,17 +35,19 @@ public class EncryptionResponseHandler extends SimpleChannelInboundHandler<Encry
             return;
         }
 
-        GameProfile profile = authenticate(ctx, sharedSecret);
-        if (profile == null) {
-            ctx.close();
-            return;
+        if(CascadeBootstrap.CONFIG.isAuthVerification()) {
+	        GameProfile profile = authenticate(ctx, sharedSecret);
+	        if (profile == null) {
+	            ctx.close();
+	            return;
+	        }
+	        ctx.channel().attr(ProtocolAttributes.GAME_PROFILE).set(profile);
+	        enableEncryption(ctx.pipeline(), sharedSecret);
+	        ctx.writeAndFlush(new LoginSuccessPacket(profile));
+        } else {
+            enableEncryption(ctx.pipeline(), sharedSecret);
+        	ctx.writeAndFlush(new LoginSuccessPacket(new GameProfile(UUID.randomUUID(), "", null)));
         }
-
-        enableEncryption(ctx.pipeline(), sharedSecret);
-        
-        ctx.channel().attr(ProtocolAttributes.GAME_PROFILE).set(profile);
-        
-        ctx.writeAndFlush(new LoginSuccessPacket(profile));
     }
 
     private boolean isValidVerifyToken(ChannelHandlerContext ctx, byte[] token) {

@@ -30,6 +30,7 @@ public class ProxyConfigLoader {
         config.setProxyVersionName(props.getProperty("proxy_version_name"));
         config.setProxyDescription(props.getProperty("proxy_description"));
         config.setJwtSecret(props.getProperty("jwt_secret"));
+        config.setAuthVerification(Boolean.parseBoolean(props.getProperty("auth_verification")));
 
         return config;
     }
