@@ -7,11 +7,11 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import me.tom.cascade.net.pipeline.PipelineInitializer;
 
-public class CascadeServer {
+public class CascadeProxy {
 
     private final int port;
 
-    public CascadeServer(int port) {
+    public CascadeProxy(int port) {
         this.port = port;
     }
 

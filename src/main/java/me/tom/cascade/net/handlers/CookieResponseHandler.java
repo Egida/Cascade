@@ -7,6 +7,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.AllArgsConstructor;
+import me.tom.cascade.CascadeBootstrap;
 import me.tom.cascade.net.handlers.forward.ClientToServerHandler;
 import me.tom.cascade.net.handlers.forward.ServerToClientHandler;
 import me.tom.cascade.protocol.ConnectionState;
@@ -79,6 +80,6 @@ public class CookieResponseHandler extends SimpleChannelInboundHandler<CookieRes
 	        return;
     	}
     	
-    	System.out.println("IT DONT ACCEPT SHIT NIGGA");
+    	ctx.writeAndFlush(new DisconnectPacket(CascadeBootstrap.INVALID_TOKEN_JSON));
     }
 }
