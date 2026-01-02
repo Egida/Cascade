@@ -41,58 +41,65 @@ public class CookieResponseHandler extends SimpleChannelInboundHandler<CookieRes
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, CookieResponsePacket packet) {
-
         boolean transferMode = ctx.channel().attr(ProtocolAttributes.TRANSFER).get();
-        boolean tokenValid = packet.getPayload() != null &&
-                validateJwt(new String(packet.getPayload(), StandardCharsets.UTF_8), ctx);
-
+        boolean tokenValid = packet.getPayload() != null 
+        		&& validateJwt(new String(packet.getPayload(), StandardCharsets.UTF_8), ctx);
+     	
         if (!tokenValid && !transferMode) {
-            log.debug("Authenticating client {}", ctx.channel());
-
-            byte[] verifyToken = new byte[4];
-            random.nextBytes(verifyToken);
-
-            ctx.channel().attr(ProtocolAttributes.VERIFY_TOKEN).set(verifyToken);
-
-            EncryptionRequestPacket encryptionRequest = new EncryptionRequestPacket(
-                    "",
-                    Crypto.KEY_PAIR.getPublic().getEncoded(),
-                    verifyToken,
-                    CascadeBootstrap.CONFIG.isAuthVerification()
-            );
-
-            ctx.writeAndFlush(encryptionRequest);
+        	handleLogin(ctx);
             return;
         }
 
         if (tokenValid && transferMode) {
-            log.debug("Tunneling client {}", ctx.channel());
-
-            HandshakePacket handshake = ctx.channel().attr(ProtocolAttributes.HANDSHAKE_PACKET).get();
-            LoginStartPacket loginStart = ctx.channel().attr(ProtocolAttributes.LOGIN_START_PACKET).get();
-
-            backend.attr(ProtocolAttributes.STATE).set(ConnectionState.HANDSHAKE);
-            backend.writeAndFlush(handshake).addListener(f -> {
-                backend.attr(ProtocolAttributes.STATE).set(ConnectionState.LOGIN);
-                backend.writeAndFlush(loginStart);
-            });
-
-            client.pipeline().remove(PacketFramer.class);
-            client.pipeline().remove(PacketDecoder.class);
-            client.pipeline().remove(PacketEncoder.class);
-            client.pipeline().remove(ConnectionHandler.class);
-
-            backend.pipeline().remove(PacketFramer.class);
-            backend.pipeline().remove(PacketDecoder.class);
-            backend.pipeline().remove(PacketEncoder.class);
-
-            client.pipeline().addLast("client-to-server", new ClientToServerHandler(backend));
-            backend.pipeline().addLast("server-to-client", new ServerToClientHandler(client));
+        	handleTunnel(ctx);
             return;
         }
 
         ctx.writeAndFlush(new DisconnectPacket(CascadeBootstrap.INVALID_TOKEN_JSON));
         ctx.close();
+    }
+    
+    private void handleLogin(ChannelHandlerContext ctx) {
+    	log.debug("Authenticating client {}", ctx.channel());
+
+        byte[] verifyToken = new byte[4];
+        random.nextBytes(verifyToken);
+
+        ctx.channel().attr(ProtocolAttributes.VERIFY_TOKEN).set(verifyToken);
+
+        EncryptionRequestPacket encryptionRequest = new EncryptionRequestPacket(
+                "",
+                Crypto.KEY_PAIR.getPublic().getEncoded(),
+                verifyToken,
+                CascadeBootstrap.CONFIG.isAuthVerification()
+        );
+
+        ctx.writeAndFlush(encryptionRequest);
+    }
+    
+    private void handleTunnel(ChannelHandlerContext ctx) {
+    	log.debug("Tunneling client {}", ctx.channel());
+
+        HandshakePacket handshake = ctx.channel().attr(ProtocolAttributes.HANDSHAKE_PACKET).get();
+        LoginStartPacket loginStart = ctx.channel().attr(ProtocolAttributes.LOGIN_START_PACKET).get();
+
+        backend.attr(ProtocolAttributes.STATE).set(ConnectionState.HANDSHAKE);
+        backend.writeAndFlush(handshake).addListener(f -> {
+            backend.attr(ProtocolAttributes.STATE).set(ConnectionState.LOGIN);
+            backend.writeAndFlush(loginStart);
+        });
+
+        client.pipeline().remove(PacketFramer.class);
+        client.pipeline().remove(PacketDecoder.class);
+        client.pipeline().remove(PacketEncoder.class);
+        client.pipeline().remove(ConnectionHandler.class);
+
+        backend.pipeline().remove(PacketFramer.class);
+        backend.pipeline().remove(PacketDecoder.class);
+        backend.pipeline().remove(PacketEncoder.class);
+
+        client.pipeline().addLast("client-to-server", new ClientToServerHandler(backend));
+        backend.pipeline().addLast("server-to-client", new ServerToClientHandler(client));
     }
 
     private boolean validateJwt(String jwt, ChannelHandlerContext ctx) {

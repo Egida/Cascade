@@ -29,34 +29,32 @@ public class EncryptionResponseHandler extends SimpleChannelInboundHandler<Encry
 
         byte[] sharedSecret = Crypto.rsaDecrypt(packet.getSharedSecret(), privateKey);
         byte[] verifyToken = Crypto.rsaDecrypt(packet.getVerifyToken(), privateKey);
-        boolean validToken = isValidVerifyToken(ctx, verifyToken);
+        boolean validToken = validateVerifyToken(ctx, verifyToken);
         boolean onlineMode = CascadeBootstrap.CONFIG.isAuthVerification();
 
         if (!validToken) {
             ctx.close();
             return;
         }
-
-        if(!onlineMode) {
-        	return;
-        }
         
-        if(onlineMode) {
-            GameProfile profile = authenticate(ctx, sharedSecret);
-            if (profile == null) {
-                ctx.close();
-                return;
-            }
-            ctx.channel().attr(ProtocolAttributes.GAME_PROFILE).set(profile);
-            enableEncryption(ctx.pipeline(), sharedSecret);
-            ctx.writeAndFlush(new LoginSuccessPacket(profile));
-        } else {
-            enableEncryption(ctx.pipeline(), sharedSecret);
-        	ctx.writeAndFlush(new LoginSuccessPacket(new GameProfile(UUID.randomUUID(), "", null)));
-        }
+        GameProfile profile = getGameProfile(ctx, onlineMode, sharedSecret);
+        enableEncryption(ctx.pipeline(), sharedSecret);
+        ctx.writeAndFlush(new LoginSuccessPacket(profile));
+    }
+    
+    private GameProfile getGameProfile(ChannelHandlerContext ctx, boolean onlineMode, byte[] sharedSecret) {
+    	if(onlineMode) {
+	    	GameProfile profile = authenticate(ctx, sharedSecret);
+	        if (profile == null) {
+	            ctx.close();
+	        }
+	        return profile;
+    	} else {
+    		return new GameProfile(UUID.randomUUID(), "", null);
+    	}
     }
 
-    private boolean isValidVerifyToken(ChannelHandlerContext ctx, byte[] token) {
+    private boolean validateVerifyToken(ChannelHandlerContext ctx, byte[] token) {
         byte[] expected = ctx.channel().attr(ProtocolAttributes.VERIFY_TOKEN).get();
         return Arrays.equals(token, expected);
     }
