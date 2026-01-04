@@ -3,13 +3,17 @@
 A lightweight proxy architecture that provides secure authentication, encrypted tunneling, and
 Minecraft-native Layer 7 DDoS protection — all without requiring mods or offline mode on the backend.
 
+![startup](https://github.com/Steinimfluss/Cascade/blob/main/images/status.png)
 > **Important Requirement**  
 > Your backend server **must support Minecraft transfer packets and cookie-based authentication**.  
 > This means Cascade only works with **Minecraft versions that include the official transfer system**  
 > (1.20.5+ and newer).  
-> Older versions **will not work**, because they do not support the required packet flow.
+> Older versions **will not work**, because they do not support the required packet flow.  
+> You must create a firewall rule to only accept request from the Cascade node on your backend!
 
 ## Features
+- Handles status requests
+
 - Cookie-based authentication flow
 
 - Mojang account verification
