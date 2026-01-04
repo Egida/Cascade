@@ -23,13 +23,10 @@ public class ProxyConfigLoader {
         }
 
         ProxyConfig config = new ProxyConfig();
-        config.setProxyPort(Short.parseShort(props.getProperty("proxy_port")));
-        config.setTargetHost(props.getProperty("target_host"));
-        config.setTargetPort(Short.parseShort(props.getProperty("target_port")));
         config.setProxyVersionProtocol(Integer.parseInt(props.getProperty("proxy_version_protocol")));
         config.setProxyVersionName(props.getProperty("proxy_version_name"));
         config.setProxyDescription(props.getProperty("proxy_description"));
-        config.setJwtSecret(props.getProperty("jwt_secret"));
+        
         config.setAuthVerification(Boolean.parseBoolean(props.getProperty("auth_verification")));
 
         return config;
