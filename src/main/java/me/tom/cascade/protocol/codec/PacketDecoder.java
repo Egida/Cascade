@@ -23,6 +23,8 @@ public class PacketDecoder extends MessageToMessageDecoder<ByteBuf> {
 
         Class<? extends Packet> clazz = state.getRegistry().getPacket(side, packetId);
         if (clazz == null) {
+        	byte[] remaining = new byte[in.readableBytes()];
+        	in.readBytes(remaining);
         	return;
         }
 
