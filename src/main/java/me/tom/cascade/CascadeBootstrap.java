@@ -31,10 +31,14 @@ public class CascadeBootstrap
 
 	static {
 	    try {
-	        PROXY_STATUS_JSON = new String(Files.readAllBytes(Paths.get("status.json")));
-	        INVALID_TOKEN_JSON = new String(Files.readAllBytes(Paths.get("invalid_token.json")));
-	    } catch (IOException e) {
-	        throw new RuntimeException("Failed to load status.json", e);
+	        PROXY_STATUS_JSON = new String(
+	            CascadeBootstrap.class.getResourceAsStream("/status.json").readAllBytes()
+	        );
+	        INVALID_TOKEN_JSON = new String(
+	            CascadeBootstrap.class.getResourceAsStream("/invalid_token.json").readAllBytes()
+	        );
+	    } catch (Exception e) {
+	        throw new RuntimeException("Failed to load bundled JSON files", e);
 	    }
 	}
 			
