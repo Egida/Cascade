@@ -25,22 +25,6 @@ public class CascadeBootstrap
 	public static final Gson GSON = new GsonBuilder()
     	    .registerTypeAdapter(UUID.class, new MojangUUIDAdapter())
     	    .create();
-	
-	public static final String PROXY_STATUS_JSON;
-	public static final String INVALID_TOKEN_JSON;
-
-	static {
-	    try {
-	        PROXY_STATUS_JSON = new String(
-	            CascadeBootstrap.class.getResourceAsStream("/status.json").readAllBytes()
-	        );
-	        INVALID_TOKEN_JSON = new String(
-	            CascadeBootstrap.class.getResourceAsStream("/invalid_token.json").readAllBytes()
-	        );
-	    } catch (Exception e) {
-	        throw new RuntimeException("Failed to load bundled JSON files", e);
-	    }
-	}
 			
 	
     public static void main( String[] args ) throws InterruptedException, FileNotFoundException, IOException
