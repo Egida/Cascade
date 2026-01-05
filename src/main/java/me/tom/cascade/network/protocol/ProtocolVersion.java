@@ -49,6 +49,10 @@ public enum ProtocolVersion {
 		return this.versionNumber > protocolVersion.versionNumber;
 	}
 	
+	public String getName() {
+		return toString().replaceFirst("MINECRAFT_", "").replaceAll("_", ".");
+	}
+	
 	public static ProtocolVersion[] allVersionsExcept(ProtocolVersion... excluded) {
 	    ProtocolVersion[] all = ProtocolVersion.values();
 	    if (excluded == null || excluded.length == 0) return all;

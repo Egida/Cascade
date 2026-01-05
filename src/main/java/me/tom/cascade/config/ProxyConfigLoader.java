@@ -36,7 +36,6 @@ public class ProxyConfigLoader {
 	        config.setJwtSecret(props.getProperty("jwt_secret"));
 	        config.setProxyVersionProtocolMin(Integer.parseInt(props.getProperty("proxy_version_protocol_minimum")));
 	        config.setProxyVersionProtocolMax(Integer.parseInt(props.getProperty("proxy_version_protocol_maximum")));
-	        config.setProxyVersionName(props.getProperty("proxy_version_name"));
 	        config.setProxyDescription(props.getProperty("proxy_description"));
 	        config.setAuthVerification(Boolean.parseBoolean(props.getProperty("auth_verification")));
 	        

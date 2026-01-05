@@ -12,7 +12,6 @@ public class ProxyConfig {
 	
 	private int proxyVersionProtocolMin;
 	private int proxyVersionProtocolMax;
-	private String proxyVersionName;
 	private String proxyDescription;
 	
 	private String jwtSecret;
