@@ -10,7 +10,7 @@ import io.jsonwebtoken.security.Keys;
 import me.tom.cascade.command.Args;
 import me.tom.cascade.config.ProxyConfig;
 import me.tom.cascade.config.ProxyConfigLoader;
-import me.tom.cascade.net.CascadeProxy;
+import me.tom.cascade.network.CascadeProxy;
 
 public class CascadeBootstrap 
 {
