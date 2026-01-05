@@ -10,7 +10,8 @@ public class ProxyConfig {
 	private String targetHost;
 	private short targetPort;
 	
-	private int proxyVersionProtocol;
+	private int proxyVersionProtocolMin;
+	private int proxyVersionProtocolMax;
 	private String proxyVersionName;
 	private String proxyDescription;
 	

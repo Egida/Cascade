@@ -15,7 +15,6 @@ import me.tom.cascade.network.pipeline.PipelineInitializer;
 @AllArgsConstructor
 public class CascadeProxy {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CascadeProxy.class);
-	
     private final int port;
 
     public void start() throws InterruptedException {

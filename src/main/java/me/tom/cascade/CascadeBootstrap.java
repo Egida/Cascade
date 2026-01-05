@@ -1,5 +1,7 @@
 package me.tom.cascade;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.security.Key;
 import java.util.UUID;
 
@@ -7,14 +9,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import io.jsonwebtoken.security.Keys;
-import me.tom.cascade.command.Args;
 import me.tom.cascade.config.ProxyConfig;
 import me.tom.cascade.config.ProxyConfigLoader;
 import me.tom.cascade.network.CascadeProxy;
+import me.tom.cascade.network.protocol.ProtocolVersion;
 
 public class CascadeBootstrap 
 {
-	public static final ProxyConfig CONFIG = ProxyConfigLoader.load();
+	public static ProxyConfig CONFIG;
 	public static Key JWT_KEY;
 	
 	private static CascadeProxy PROXY;
@@ -40,14 +42,13 @@ public class CascadeBootstrap
 	}
 			
 	
-    public static void main( String[] args ) throws InterruptedException
+    public static void main( String[] args ) throws InterruptedException, FileNotFoundException, IOException
     {
-    	CONFIG.setProxyPort(Short.parseShort(Args.get(args, "proxyPort")));
-    	CONFIG.setTargetHost(Args.get(args, "targetHost"));
-    	CONFIG.setTargetPort(Short.parseShort(Args.get(args, "targetPort")));
-    	CONFIG.setJwtSecret(Args.get(args, "jwtSecret"));
-    	
+    	CONFIG = ProxyConfigLoader.load();
     	JWT_KEY = Keys.hmacShaKeyFor(CONFIG.getJwtSecret().getBytes());
+    	
+    	ProtocolVersion.MINIMUM_VERSION = ProtocolVersion.getFromVersionNumber(CONFIG.getProxyVersionProtocolMin());
+    	ProtocolVersion.MAXIMUM_VERSION = ProtocolVersion.getFromVersionNumber(CONFIG.getProxyVersionProtocolMax());
     	
     	PROXY = new CascadeProxy(CONFIG.getProxyPort());
     	PROXY.start();

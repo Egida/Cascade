@@ -20,8 +20,8 @@ public enum ProtocolVersion {
 	MINECRAFT_1_21_10(773),
 	MINECRAFT_1_21_11(774);
 	
-	private static final ProtocolVersion MINIMUM_VERSION = MINECRAFT_1_20_5;
-	private static final ProtocolVersion MAXIMUM_VERSION = MINECRAFT_1_21_11;
+	public static ProtocolVersion MINIMUM_VERSION = MINECRAFT_1_20_5;
+	public static ProtocolVersion MAXIMUM_VERSION = MINECRAFT_1_21_11;
 	
 	private static final Map<Integer, ProtocolVersion> ID_TO_CONTANT = new HashMap<Integer, ProtocolVersion>();
 	
