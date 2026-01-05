@@ -1,5 +1,7 @@
 package me.tom.cascade.net.handlers;
 
+import static me.tom.cascade.net.ProtocolVersion.*;
+
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -29,6 +31,7 @@ import me.tom.cascade.auth.MojangSessionService;
 import me.tom.cascade.crypto.AesDecryptHandler;
 import me.tom.cascade.crypto.AesEncryptHandler;
 import me.tom.cascade.crypto.Crypto;
+import me.tom.cascade.net.ProtocolVersion;
 import me.tom.cascade.net.handlers.forward.ClientToServerHandler;
 import me.tom.cascade.net.handlers.forward.ServerToClientHandler;
 import me.tom.cascade.net.pipeline.BackendInitializer;
@@ -41,6 +44,7 @@ import me.tom.cascade.protocol.packet.Packet;
 import me.tom.cascade.protocol.packet.packets.clientbound.CookieRequestPacket;
 import me.tom.cascade.protocol.packet.packets.clientbound.EncryptionResponsePacket;
 import me.tom.cascade.protocol.packet.packets.clientbound.LoginSuccessPacket;
+import me.tom.cascade.protocol.packet.packets.clientbound.OldLoginSuccessPacket;
 import me.tom.cascade.protocol.packet.packets.clientbound.StoreCookiePacket;
 import me.tom.cascade.protocol.packet.packets.clientbound.TransferPacket;
 import me.tom.cascade.protocol.packet.packets.serverbound.CookieResponsePacket;
@@ -58,6 +62,8 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
 	
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, Packet packet) throws Exception {
+		ProtocolVersion protocolVersion = ctx.channel().attr(ProtocolAttributes.PROTOCOL_VERSION).get();
+		
 		if(packet instanceof LoginStartPacket) {
 			LoginStartPacket loginStart = (LoginStartPacket)packet;
 			
@@ -70,9 +76,7 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
 			CookieResponsePacket cookieResponse = (CookieResponsePacket)packet;
 
 			if(cookieResponse.getKey().contentEquals("cascade:token")) {
-		        boolean serverTransfer = ctx.channel().attr(ProtocolAttributes.TRANSFER).get();
-
-		        if(!serverTransfer) {
+		        if(!ctx.channel().attr(ProtocolAttributes.TRANSFER).get()) {
 		            random.nextBytes(verifyToken);
 
 		            EncryptionRequestPacket encryptionRequest = new EncryptionRequestPacket(
@@ -96,7 +100,7 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
 		            Channel client = ctx.channel();
 
 		            HandshakePacket handshake = new HandshakePacket(
-		                    CascadeBootstrap.CONFIG.getProxyVersionProtocol(),
+		                    protocolVersion.getVersionNumber(),
 		                    CascadeBootstrap.CONFIG.getTargetHost(),
 		                    CascadeBootstrap.CONFIG.getTargetPort(),
 		                    ConnectionState.LOGIN.ordinal()
@@ -118,6 +122,8 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
 		                }
 
 		                Channel backend = ((ChannelFuture) future).channel();
+		                
+		                backend.attr(ProtocolAttributes.PROTOCOL_VERSION).set(protocolVersion);
 
 		                client.pipeline().addLast("client-to-server", new ClientToServerHandler(backend));
 		                backend.pipeline().addLast("server-to-client", new ServerToClientHandler(client));
@@ -158,7 +164,11 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
 	        
 	        GameProfile profile = getGameProfile(ctx, onlineMode, sharedSecret);
 	        enableEncryption(ctx.pipeline(), sharedSecret);
-	        ctx.writeAndFlush(new LoginSuccessPacket(profile));
+	        if(protocolVersion.isBefore(MINECRAFT_1_21_1)) {
+		        ctx.writeAndFlush(new OldLoginSuccessPacket(profile, false));
+	        } else {
+	        	ctx.writeAndFlush(new LoginSuccessPacket(profile));
+	        }
 		} else if(packet instanceof LoginAcknowledgedPacket) {
 			String ip = ((InetSocketAddress) ctx.channel().remoteAddress()).getHostString();
 			String jwt = Jwts.builder()

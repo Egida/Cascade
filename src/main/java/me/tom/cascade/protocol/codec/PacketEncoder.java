@@ -6,6 +6,7 @@ import io.netty.handler.codec.EncoderException;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.AllArgsConstructor;
 import me.tom.cascade.net.NetworkSide;
+import me.tom.cascade.net.ProtocolVersion;
 import me.tom.cascade.protocol.ConnectionState;
 import me.tom.cascade.protocol.ProtocolAttributes;
 import me.tom.cascade.protocol.packet.Packet;
@@ -18,9 +19,10 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
     @Override
     protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf out) throws Exception {
         ConnectionState state = ctx.channel().attr(ProtocolAttributes.STATE).get();
-        
+        ProtocolVersion protocolVersion = ctx.channel().attr(ProtocolAttributes.PROTOCOL_VERSION).get();
+
         ByteBuf body = ctx.alloc().buffer();
-        int packetId = state.getRegistry().getPacketId(side, packet.getClass());
+        int packetId = state.getRegistry().getPacketId(protocolVersion, side, packet.getClass());
 
         if (packetId == -1) {
         	throw new EncoderException("Unknown packet ID for packet " + packet);

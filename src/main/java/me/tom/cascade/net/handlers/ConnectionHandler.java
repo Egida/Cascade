@@ -3,6 +3,7 @@ package me.tom.cascade.net.handlers;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import me.tom.cascade.net.ProtocolVersion;
 import me.tom.cascade.protocol.ConnectionState;
 import me.tom.cascade.protocol.ProtocolAttributes;
 import me.tom.cascade.protocol.types.VarInt;
@@ -11,6 +12,7 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<ByteBuf> {
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 	    ctx.channel().attr(ProtocolAttributes.STATE).set(ConnectionState.HANDSHAKE);
+	    ctx.channel().attr(ProtocolAttributes.PROTOCOL_VERSION).set(ProtocolVersion.UNKNOWN);
 	    super.channelActive(ctx);
 	}
 

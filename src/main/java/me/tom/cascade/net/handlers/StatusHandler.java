@@ -13,13 +13,21 @@ public class StatusHandler extends SimpleChannelInboundHandler<Packet> {
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, Packet packet) throws Exception {
 		if(packet instanceof StatusRequestPacket) {
-	        StatusResponsePacket statusResponse = new StatusResponsePacket(CascadeBootstrap.PROXY_STATUS_JSON);
-	        ctx.writeAndFlush(statusResponse);
+			StatusRequestPacket statusRequest = (StatusRequestPacket)packet;
+			onStatusRequest(ctx, statusRequest);
 		} else if(packet instanceof PingRequestPacket) {
 			PingRequestPacket pingRequest = (PingRequestPacket)packet;
-	        PongResponsePacket pongResponse = new PongResponsePacket(pingRequest.getTimestamp());
-	
-	        ctx.writeAndFlush(pongResponse);
+			onPingRequest(ctx, pingRequest);
 		}
+	}
+	
+	private void onStatusRequest(ChannelHandlerContext ctx, StatusRequestPacket packet) {
+        StatusResponsePacket statusResponse = new StatusResponsePacket(CascadeBootstrap.PROXY_STATUS_JSON);
+        ctx.writeAndFlush(statusResponse);
+	}
+	
+	private void onPingRequest(ChannelHandlerContext ctx, PingRequestPacket packet) {
+        PongResponsePacket pongResponse = new PongResponsePacket(packet.getTimestamp());
+        ctx.writeAndFlush(pongResponse);
 	}
 }

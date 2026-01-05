@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum ProtocolVersion {
+	UNKNOWN(-1),
 	MINECRAFT_1_20_5(766),
 	MINECRAFT_1_20_6(766),
 	MINECRAFT_1_21(767),
@@ -32,8 +33,47 @@ public enum ProtocolVersion {
 		}
 	}
 	
+	public static ProtocolVersion getFromVersionNumber(int versionNumber) {
+		return ID_TO_CONTANT.getOrDefault(versionNumber, UNKNOWN);
+	}
+	
 	private ProtocolVersion(int versionNumber) {
 		this.versionNumber = versionNumber;
+	}
+	
+	public boolean isBefore(ProtocolVersion protocolVersion) {
+		return this.versionNumber < protocolVersion.versionNumber;
+	}
+	
+	public boolean isAfter(ProtocolVersion protocolVersion) {
+		return this.versionNumber > protocolVersion.versionNumber;
+	}
+	
+	public static ProtocolVersion[] allVersionsExcept(ProtocolVersion... excluded) {
+	    ProtocolVersion[] all = ProtocolVersion.values();
+	    if (excluded == null || excluded.length == 0) return all;
+
+	    boolean[] skip = new boolean[all.length];
+	    for (ProtocolVersion ex : excluded) {
+	        skip[ex.ordinal()] = true;
+	    }
+
+	    int count = 0;
+	    for (int i = 0; i < all.length; i++) {
+	        if (!skip[i]) count++;
+	    }
+
+	    ProtocolVersion[] result = new ProtocolVersion[count];
+	    int idx = 0;
+	    for (int i = 0; i < all.length; i++) {
+	        if (!skip[i]) result[idx++] = all[i];
+	    }
+
+	    return result;
+	}
+	
+	public static ProtocolVersion[] allVersions() {
+		return values();
 	}
 	
 	public int getVersionNumber() {

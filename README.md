@@ -7,7 +7,7 @@ Minecraft-native Layer 7 DDoS protection — all without requiring mods or offli
 > **Important Requirement**  
 > Your backend server **must support Minecraft transfer packets and cookie-based authentication**.  
 > This means Cascade only works with **Minecraft versions that include the official transfer system**  
-> (1.20.5+ and newer).  
+> (1.21+ and newer).  
 > Older versions **will not work**, because they do not support the required packet flow.  
 > You must create a firewall rule to only accept request from the Cascade node on your backend!
 
