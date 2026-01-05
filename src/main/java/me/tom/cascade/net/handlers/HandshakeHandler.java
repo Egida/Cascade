@@ -20,21 +20,24 @@ public class HandshakeHandler extends SimpleChannelInboundHandler<Packet> {
     protected void channelRead0(ChannelHandlerContext ctx, Packet packet) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		if(packet instanceof HandshakePacket) {
 			HandshakePacket handshake = (HandshakePacket)packet;
-
-			ConnectionState nextState = ConnectionState.values()[handshake.getNextState()];
-
-			boolean serverTransfer = nextState == TRANSFER;
-			
-			if(serverTransfer)
-				nextState = LOGIN;
-			
-			ctx.channel().attr(ProtocolAttributes.TRANSFER).set(serverTransfer);
-	        ctx.channel().attr(ProtocolAttributes.STATE).set(nextState);
-	        ctx.channel().attr(ProtocolAttributes.PROTOCOL_VERSION).set(ProtocolVersion.getFromVersionNumber(handshake.protocolVersion));
-	        
-	        ctx.pipeline().replace(this, "packet-handler", nextState.getHandler().getConstructor().newInstance());
+			onHandshake(ctx, handshake);
 		} else {
 			ctx.fireChannelRead(packet);
 		}
     }
+	
+	private void onHandshake(ChannelHandlerContext ctx, HandshakePacket packet) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		ConnectionState nextState = ConnectionState.values()[packet.getNextState()];
+
+		boolean serverTransfer = nextState == TRANSFER;
+		
+		if(serverTransfer)
+			nextState = LOGIN;
+		
+		ctx.channel().attr(ProtocolAttributes.TRANSFER).set(serverTransfer);
+        ctx.channel().attr(ProtocolAttributes.STATE).set(nextState);
+        ctx.channel().attr(ProtocolAttributes.PROTOCOL_VERSION).set(ProtocolVersion.getFromVersionNumber(packet.getProtocolVersion()));
+        
+        ctx.pipeline().replace(this, "packet-handler", nextState.getHandler().getConstructor().newInstance());
+	}
 }

@@ -1,7 +1,9 @@
 package me.tom.cascade.net.handlers;
 
-import static me.tom.cascade.net.ProtocolVersion.*;
+import static me.tom.cascade.net.ProtocolVersion.MINECRAFT_1_21_1;
+import static me.tom.cascade.net.ProtocolVersion.UNKNOWN;
 
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
@@ -55,153 +57,196 @@ import me.tom.cascade.protocol.packet.packets.serverbound.LoginStartPacket;
 
 @RequiredArgsConstructor
 public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
-	private SecureRandom random = new SecureRandom();
-	private byte[] verifyToken = new byte[4];
-	private String username;
-	private UUID uuid;
-	
-	@Override
-	protected void channelRead0(ChannelHandlerContext ctx, Packet packet) throws Exception {
-		ProtocolVersion protocolVersion = ctx.channel().attr(ProtocolAttributes.PROTOCOL_VERSION).get();
-		
-		if(packet instanceof LoginStartPacket) {
-			LoginStartPacket loginStart = (LoginStartPacket)packet;
-			
-			this.username = loginStart.getName();
-			this.uuid = loginStart.getUuid();
-			
-			CookieRequestPacket cookieRequest = new CookieRequestPacket("cascade:token");
-			ctx.writeAndFlush(cookieRequest);
-		} else if(packet instanceof CookieResponsePacket) {
-			CookieResponsePacket cookieResponse = (CookieResponsePacket)packet;
 
-			if(cookieResponse.getKey().contentEquals("cascade:token")) {
-		        if(!ctx.channel().attr(ProtocolAttributes.TRANSFER).get()) {
-		            random.nextBytes(verifyToken);
+    private final SecureRandom random = new SecureRandom();
+    private final byte[] verifyToken = new byte[4];
+    private String username;
+    private UUID uuid;
 
-		            EncryptionRequestPacket encryptionRequest = new EncryptionRequestPacket(
-		                    "",
-		                    Crypto.KEY_PAIR.getPublic().getEncoded(),
-		                    verifyToken,
-		                    CascadeBootstrap.CONFIG.isAuthVerification()
-		            );
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, Packet packet) throws Exception {
+        if (packet instanceof LoginStartPacket) {
+        	LoginStartPacket loginStart = (LoginStartPacket)packet;
+            onLoginStart(ctx, loginStart);
+        } else if (packet instanceof CookieResponsePacket) {
+        	CookieResponsePacket cookieResponse = (CookieResponsePacket)packet;
+            onCookieResponse(ctx, cookieResponse);
+        } else if (packet instanceof EncryptionResponsePacket) {
+        	EncryptionResponsePacket encryptionResponse = (EncryptionResponsePacket)packet;
+            onEncryptionResponse(ctx, encryptionResponse);
+        } else if (packet instanceof LoginAcknowledgedPacket) {
+            onLoginAcknowledged(ctx);
+        }
+    }
 
-		            ctx.writeAndFlush(encryptionRequest);
-		            return;
-		        }
-		        
-		        boolean validToken = false;
-		        if(cookieResponse.getPayload() != null) {
-			        String jwtToken = new String(cookieResponse.getPayload(), StandardCharsets.UTF_8);
-			        validToken = isValidJwtToken(jwtToken, ctx);
-		        }
-		        
-		        if (validToken) {
-		            Channel client = ctx.channel();
+    private void onLoginStart(ChannelHandlerContext ctx, LoginStartPacket packet) {
+        this.username = packet.getName();
+        this.uuid = packet.getUuid();
+        ctx.writeAndFlush(new CookieRequestPacket("cascade:token"));
+    }
 
-		            HandshakePacket handshake = new HandshakePacket(
-		                    protocolVersion.getVersionNumber(),
-		                    CascadeBootstrap.CONFIG.getTargetHost(),
-		                    CascadeBootstrap.CONFIG.getTargetPort(),
-		                    ConnectionState.LOGIN.ordinal()
-		            );
-		            LoginStartPacket loginStart = new LoginStartPacket(username, uuid);
+    private void onEncryptionResponse(ChannelHandlerContext ctx, EncryptionResponsePacket packet) {
+        PrivateKey privateKey = Crypto.KEY_PAIR.getPrivate();
 
-		            Bootstrap backendBootstrap = new Bootstrap()
-		                    .group(client.eventLoop())
-		                    .channel(NioSocketChannel.class)
-		                    .handler(new BackendInitializer());
+        byte[] sharedSecret = Crypto.rsaDecrypt(packet.getSharedSecret(), privateKey);
+        byte[] token = Crypto.rsaDecrypt(packet.getVerifyToken(), privateKey);
 
-		            backendBootstrap.connect(
-		                    CascadeBootstrap.CONFIG.getTargetHost(),
-		                    CascadeBootstrap.CONFIG.getTargetPort()
-		            ).addListener(future -> {
-		                if (!future.isSuccess()) {
-		                    client.close();
-		                    return;
-		                }
+        if (!validateVerifyToken(token)) {
+            ctx.close();
+            return;
+        }
 
-		                Channel backend = ((ChannelFuture) future).channel();
-		                
-		                backend.attr(ProtocolAttributes.PROTOCOL_VERSION).set(protocolVersion);
+        GameProfile profile = getGameProfile(ctx, CascadeBootstrap.CONFIG.isAuthVerification(), sharedSecret);
 
-		                client.pipeline().addLast("client-to-server", new ClientToServerHandler(backend));
-		                backend.pipeline().addLast("server-to-client", new ServerToClientHandler(client));
+        enableEncryption(ctx.pipeline(), sharedSecret);
+        sendLoginSuccess(ctx, profile);
+    }
 
-		                backend.attr(ProtocolAttributes.STATE).set(ConnectionState.HANDSHAKE);
-		                backend.writeAndFlush(handshake).addListener(f -> {
-		                    backend.attr(ProtocolAttributes.STATE).set(ConnectionState.LOGIN);
-		                    backend.writeAndFlush(loginStart);
-		                });
-		                
-		                backend.pipeline().remove(PacketFramer.class);
-		                backend.pipeline().remove(PacketDecoder.class);
-		                backend.pipeline().remove(PacketEncoder.class);
+    private void sendLoginSuccess(ChannelHandlerContext ctx, GameProfile profile) {
+        ProtocolVersion protocolVersion = ctx.channel().attr(ProtocolAttributes.PROTOCOL_VERSION).get();
+        if (protocolVersion != null && protocolVersion.isBefore(MINECRAFT_1_21_1)) {
+            ctx.writeAndFlush(new OldLoginSuccessPacket(profile, false));
+        } else {
+            ctx.writeAndFlush(new LoginSuccessPacket(profile));
+        }
+    }
 
-		                client.pipeline().remove(PacketFramer.class);
-		                client.pipeline().remove(PacketDecoder.class);
-		                client.pipeline().remove(PacketEncoder.class);
-		                client.pipeline().remove(ConnectionHandler.class);
-		            });
-		        } else {
-		            ctx.close();
-		            return;
-		        }
-			}
-		} else if(packet instanceof EncryptionResponsePacket) {
-			EncryptionResponsePacket encryptionResponse = (EncryptionResponsePacket)packet;
-			PrivateKey privateKey = Crypto.KEY_PAIR.getPrivate();
+    private void onCookieResponse(ChannelHandlerContext ctx, CookieResponsePacket packet) {
+        if (!"cascade:token".equals(packet.getKey())) {
+            return;
+        }
 
-	        byte[] sharedSecret = Crypto.rsaDecrypt(encryptionResponse.getSharedSecret(), privateKey);
-	        byte[] verifyToken = Crypto.rsaDecrypt(encryptionResponse.getVerifyToken(), privateKey);
-	        boolean validToken = validateVerifyToken(ctx, verifyToken);
-	        boolean onlineMode = CascadeBootstrap.CONFIG.isAuthVerification();
+        Channel client = ctx.channel();
+        ProtocolVersion protocolVersion = client.attr(ProtocolAttributes.PROTOCOL_VERSION).get();
 
-	        if (!validToken) {
-	            ctx.close();
-	            return;
-	        }
-	        
-	        GameProfile profile = getGameProfile(ctx, onlineMode, sharedSecret);
-	        enableEncryption(ctx.pipeline(), sharedSecret);
-	        if(protocolVersion.isBefore(MINECRAFT_1_21_1)) {
-		        ctx.writeAndFlush(new OldLoginSuccessPacket(profile, false));
-	        } else {
-	        	ctx.writeAndFlush(new LoginSuccessPacket(profile));
-	        }
-		} else if(packet instanceof LoginAcknowledgedPacket) {
-			String ip = ((InetSocketAddress) ctx.channel().remoteAddress()).getHostString();
-			String jwt = Jwts.builder()
-			        .setSubject(username)
-			        .claim("ip", ip)
-			        .setIssuedAt(new Date())
-			        .setExpiration(new Date(System.currentTimeMillis() + 5_000))
-			        .signWith(CascadeBootstrap.JWT_KEY, SignatureAlgorithm.HS256)
-			        .compact();
-			ctx.channel().attr(ProtocolAttributes.STATE).set(ConnectionState.CONFIGURATION);
-	        ctx.pipeline().replace(this, "packet-handler", ConnectionState.CONFIGURATION.getHandler().newInstance());
+        if (Boolean.FALSE.equals(client.attr(ProtocolAttributes.TRANSFER).get())) {
+            random.nextBytes(verifyToken);
 
-			StoreCookiePacket storeCookie = new StoreCookiePacket(
-						"cascade:token", 
-						jwt.getBytes()
-					);
-			
-			TransferPacket transfer = new TransferPacket(
-						((InetSocketAddress)ctx.channel().remoteAddress()).getHostString(), 
-						CascadeBootstrap.CONFIG.getProxyPort()
-					);
-			
-			ctx.writeAndFlush(storeCookie);
-			ctx.writeAndFlush(transfer);
-		}
-	}
-	
+            EncryptionRequestPacket encryptionRequest = new EncryptionRequestPacket(
+                    "",
+                    Crypto.KEY_PAIR.getPublic().getEncoded(),
+                    verifyToken,
+                    CascadeBootstrap.CONFIG.isAuthVerification()
+            );
+
+            ctx.writeAndFlush(encryptionRequest);
+            return;
+        }
+
+        boolean validToken = false;
+        if (packet.getPayload() != null) {
+            String jwtToken = new String(packet.getPayload(), StandardCharsets.UTF_8);
+            validToken = isValidJwtToken(jwtToken, ctx);
+        }
+
+        if (!validToken) {
+            return;
+        }
+
+        Bootstrap backendBootstrap = new Bootstrap()
+                .group(client.eventLoop())
+                .channel(NioSocketChannel.class)
+                .handler(new BackendInitializer());
+
+        backendBootstrap.connect(
+                CascadeBootstrap.CONFIG.getTargetHost(),
+                CascadeBootstrap.CONFIG.getTargetPort()
+        ).addListener(future -> {
+            if (!future.isSuccess()) {
+                client.close();
+                return;
+            }
+
+            Channel backend = ((ChannelFuture) future).channel();
+            backend.attr(ProtocolAttributes.PROTOCOL_VERSION).set(protocolVersion);
+
+            client.pipeline().addLast("client-to-server", new ClientToServerHandler(backend));
+            backend.pipeline().addLast("server-to-client", new ServerToClientHandler(client));
+
+            doClientLogin(ctx, backend);
+            clearPipelines(client, backend);
+        });
+    }
+
+    private void clearPipelines(Channel client, Channel backend) {
+        client.pipeline().remove(PacketFramer.class);
+        client.pipeline().remove(PacketDecoder.class);
+        client.pipeline().remove(PacketEncoder.class);
+        client.pipeline().remove(ConnectionHandler.class);
+
+        backend.pipeline().remove(PacketFramer.class);
+        backend.pipeline().remove(PacketDecoder.class);
+        backend.pipeline().remove(PacketEncoder.class);
+    }
+
+    private void doClientLogin(ChannelHandlerContext ctx, Channel backend) {
+        ProtocolVersion protocolVersion = ctx.channel().attr(ProtocolAttributes.PROTOCOL_VERSION).get();
+
+        HandshakePacket handshake = new HandshakePacket(
+                protocolVersion != null ? protocolVersion.getVersionNumber() : UNKNOWN.getVersionNumber(),
+                CascadeBootstrap.CONFIG.getTargetHost(),
+                CascadeBootstrap.CONFIG.getTargetPort(),
+                ConnectionState.LOGIN.ordinal()
+        );
+
+        LoginStartPacket loginStart = new LoginStartPacket(username, uuid);
+
+        backend.attr(ProtocolAttributes.STATE).set(ConnectionState.HANDSHAKE);
+        backend.writeAndFlush(handshake).addListener(f -> {
+            backend.attr(ProtocolAttributes.STATE).set(ConnectionState.LOGIN);
+            backend.writeAndFlush(loginStart);
+        });
+    }
+
+    private void onLoginAcknowledged(ChannelHandlerContext ctx) throws InstantiationException, IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+
+        String ip = ((InetSocketAddress) ctx.channel().remoteAddress()).getHostString();
+
+        String jwt = Jwts.builder()
+                .setSubject(username)
+                .claim("ip", ip)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 5_000))
+                .signWith(CascadeBootstrap.JWT_KEY, SignatureAlgorithm.HS256)
+                .compact();
+
+        ctx.channel().attr(ProtocolAttributes.STATE).set(ConnectionState.CONFIGURATION);
+        ctx.pipeline().replace(this, "packet-handler",
+                ConnectionState.CONFIGURATION.getHandler().getConstructor().newInstance());
+
+        StoreCookiePacket storeCookie = new StoreCookiePacket(
+                "cascade:token",
+                jwt.getBytes(StandardCharsets.UTF_8)
+        );
+
+        TransferPacket transfer = new TransferPacket(
+                ((InetSocketAddress) ctx.channel().remoteAddress()).getHostString(),
+                CascadeBootstrap.CONFIG.getProxyPort()
+        );
+
+        ctx.writeAndFlush(storeCookie);
+        ctx.writeAndFlush(transfer);
+    }
+
+    private boolean validateVerifyToken(byte[] token) {
+        return Arrays.equals(token, verifyToken);
+    }
+
+    private void enableEncryption(ChannelPipeline pipeline, byte[] sharedSecret) {
+        SecretKey aesKey = new SecretKeySpec(sharedSecret, "AES");
+        pipeline.addFirst("decrypt", new AesDecryptHandler(aesKey));
+        pipeline.addBefore("packet-encoder", "encrypt", new AesEncryptHandler(aesKey));
+    }
+    
+
 	private boolean isValidJwtToken(String jwt, ChannelHandlerContext ctx) {
         try {
             Key key = CascadeBootstrap.JWT_KEY;
 
-            Claims claims = Jwts.parser()
-                    .setSigningKey(key)
+            Claims claims = Jwts.parserBuilder()
+            		.setSigningKey(key)
+            		.build()
                     .parseClaimsJws(jwt)
                     .getBody();
 
@@ -218,8 +263,6 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
         }
     }
 	
-
-    
     private GameProfile getGameProfile(ChannelHandlerContext ctx, boolean onlineMode, byte[] sharedSecret) {
     	if(onlineMode) {
 	    	GameProfile profile = authenticate(ctx, sharedSecret);
@@ -232,10 +275,6 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
     	}
     }
 
-    private boolean validateVerifyToken(ChannelHandlerContext ctx, byte[] token) {
-        return Arrays.equals(token, verifyToken);
-    }
-
     private GameProfile authenticate(ChannelHandlerContext ctx, byte[] sharedSecret) {
         byte[] publicKey = Crypto.KEY_PAIR.getPublic().getEncoded();
         String serverHash = Crypto.minecraftSha1Hash("", sharedSecret, publicKey);
@@ -244,11 +283,5 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
                 .getHostAddress();
 
         return MojangSessionService.hasJoined(username, serverHash, ip);
-    }
-
-    private void enableEncryption(ChannelPipeline pipeline, byte[] sharedSecret) {
-        SecretKey aesKey = new SecretKeySpec(sharedSecret, "AES");
-        pipeline.addFirst("decrypt", new AesDecryptHandler(aesKey));
-        pipeline.addBefore("packet-encoder", "encrypt", new AesEncryptHandler(aesKey));
     }
 }
