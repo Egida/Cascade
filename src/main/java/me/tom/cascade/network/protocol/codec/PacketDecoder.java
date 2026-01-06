@@ -6,6 +6,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import lombok.AllArgsConstructor;
+import me.tom.cascade.CascadeBootstrap;
 import me.tom.cascade.network.BanManager;
 import me.tom.cascade.network.NetworkSide;
 import me.tom.cascade.network.protocol.ProtocolAttributes;
@@ -39,7 +40,7 @@ public class PacketDecoder extends MessageToMessageDecoder<ByteBuf> {
     
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        BanManager.ban(ctx, 1000);
+        BanManager.ban(ctx, CascadeBootstrap.CONFIG.getFailedProtocolPunishmentSeconds());
 
         ctx.close();
     }

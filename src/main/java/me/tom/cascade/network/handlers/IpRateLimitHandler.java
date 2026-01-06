@@ -10,8 +10,10 @@ import com.google.common.cache.CacheBuilder;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import lombok.RequiredArgsConstructor;
 
 @Sharable
+@RequiredArgsConstructor
 public class IpRateLimitHandler extends ChannelInboundHandlerAdapter {
 
     private final int maxConnectionsPerSecond;
@@ -19,10 +21,6 @@ public class IpRateLimitHandler extends ChannelInboundHandlerAdapter {
     private final Cache<String, AtomicInteger> connectionAttempts = CacheBuilder.newBuilder()
             .expireAfterWrite(1, TimeUnit.SECONDS)
             .build();
-
-    public IpRateLimitHandler(int maxConnectionsPerSecond) {
-        this.maxConnectionsPerSecond = maxConnectionsPerSecond;
-    }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {

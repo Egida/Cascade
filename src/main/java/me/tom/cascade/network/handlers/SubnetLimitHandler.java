@@ -5,18 +5,21 @@ import java.net.InetSocketAddress;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import lombok.AllArgsConstructor;
 import me.tom.cascade.network.SubnetRateLimiter;
 
 @Sharable
+@AllArgsConstructor
 public class SubnetLimitHandler extends ChannelInboundHandlerAdapter {
-
+	private int maxConnectionsPerSubnetPerSecond;
+	
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         String ip = ((InetSocketAddress) ctx.channel().remoteAddress())
                 .getAddress()
                 .getHostAddress();
 
-        if (!SubnetRateLimiter.tryAcquire(ip)) {
+        if (!SubnetRateLimiter.tryAcquire(ip, maxConnectionsPerSubnetPerSecond)) {
             ctx.close();
             return;
         }

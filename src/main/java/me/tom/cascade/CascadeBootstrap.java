@@ -41,14 +41,6 @@ public class CascadeBootstrap
     	CONFIG = ProxyConfigLoader.load();
     	JWT_KEY = Keys.hmacShaKeyFor(CONFIG.getJwtSecret().getBytes());
     	
-    	MINIMUM_VERSION = getFromVersionNumber(CONFIG.getProxyVersionProtocolMin());
-    	MAXIMUM_VERSION = getFromVersionNumber(CONFIG.getProxyVersionProtocolMax());
-    	
-    	if(MINIMUM_VERSION == UNKNOWN)
-    		throw new IllegalArgumentException("Unknown minimum version.");
-    	if(MAXIMUM_VERSION == UNKNOWN)
-    		throw new IllegalArgumentException("Unknown maximum version.");
-    	
     	PROXY = new CascadeProxy(CONFIG.getProxyPort());
     	PROXY.start();
     }

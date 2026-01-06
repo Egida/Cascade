@@ -6,24 +6,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-public class SubnetRateLimiter {
-    private static int MAX_CONNECTIONS_PER_SUBNET_PER_SECOND = 10;
+import lombok.AllArgsConstructor;
 
-    private static final Cache<String, AtomicInteger> subnetCounters =
+@AllArgsConstructor
+public class SubnetRateLimiter {
+    private static final Cache<String, AtomicInteger> SUBNET_COUNTERS =
             CacheBuilder.newBuilder()
                     .expireAfterWrite(1, TimeUnit.SECONDS)
                     .build();
 
-    public static boolean tryAcquire(String ip) {
+    public static boolean tryAcquire(String ip, int maxConnectionsPerSubnetPerSecond) {
         String subnet = get24Subnet(ip);
 
-        AtomicInteger counter = subnetCounters.getIfPresent(subnet);
+        AtomicInteger counter = SUBNET_COUNTERS.getIfPresent(subnet);
         if (counter == null) {
             counter = new AtomicInteger(0);
-            subnetCounters.put(subnet, counter);
+            SUBNET_COUNTERS.put(subnet, counter);
         }
 
-        return counter.incrementAndGet() <= MAX_CONNECTIONS_PER_SUBNET_PER_SECOND;
+        return counter.incrementAndGet() <= maxConnectionsPerSubnetPerSecond;
     }
     
     public static String get24Subnet(String ip) {

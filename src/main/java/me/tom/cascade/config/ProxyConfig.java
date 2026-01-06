@@ -10,11 +10,14 @@ public class ProxyConfig {
 	private String targetHost;
 	private short targetPort;
 	
-	private int proxyVersionProtocolMin;
-	private int proxyVersionProtocolMax;
-	private String proxyDescription;
+	private int concurrentIpConnectionLimit;
+	private int maxIpConnectionsPerSecond;
+	private int maxSubnetConnectionsPerSecond;
+	
+	private int failedLoginPunishmentSeconds;
+	private int failedAuthenticationPunishmentSeconds;
+	private int failedProtocolPunishmentSeconds;
 	
 	private String jwtSecret;
-	
 	private boolean authVerification;
 }

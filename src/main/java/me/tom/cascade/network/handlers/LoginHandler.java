@@ -106,7 +106,7 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
                 int strikes = StrikeManager.addStrike(ctx);
 
                 if (strikes >= 3) {
-                    BanManager.ban(ctx, 10000L);
+                    BanManager.ban(ctx, CascadeBootstrap.CONFIG.getFailedLoginPunishmentSeconds());
                 }
 
                 ctx.close();
@@ -135,7 +135,7 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
         GameProfile profile = getGameProfile(ctx, CascadeBootstrap.CONFIG.isAuthVerification(), sharedSecret);
 
         if(profile == null) {
-	        BanManager.ban(ctx, 1000 * 60 * 60 * 24);
+	        BanManager.ban(ctx, CascadeBootstrap.CONFIG.getFailedAuthenticationPunishmentSeconds());
 	    	ctx.close();
         }
         

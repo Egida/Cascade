@@ -33,10 +33,13 @@ public class ProxyConfigLoader {
 	        config.setProxyPort(Short.parseShort(props.getProperty("proxy_port")));
 	        config.setTargetHost(props.getProperty("target_host"));
 	        config.setTargetPort(Short.parseShort(props.getProperty("target_port")));
+	        config.setConcurrentIpConnectionLimit(Integer.parseInt(props.getProperty("concurrent_ip_connection_limit")));
+	        config.setMaxIpConnectionsPerSecond(Integer.parseInt(props.getProperty("max_ip_connections_per_second")));
+	        config.setMaxSubnetConnectionsPerSecond(Integer.parseInt(props.getProperty("max_subnet_connections_per_second")));
+	        config.setFailedProtocolPunishmentSeconds(Integer.parseInt(props.getProperty("failed_protocol_punishment_seconds")));
+	        config.setFailedLoginPunishmentSeconds(Integer.parseInt(props.getProperty("failed_login_punishment_seconds")));
+	        config.setFailedAuthenticationPunishmentSeconds(Integer.parseInt(props.getProperty("failed_authentication_punishment_seconds")));
 	        config.setJwtSecret(props.getProperty("jwt_secret"));
-	        config.setProxyVersionProtocolMin(Integer.parseInt(props.getProperty("proxy_version_protocol_minimum")));
-	        config.setProxyVersionProtocolMax(Integer.parseInt(props.getProperty("proxy_version_protocol_maximum")));
-	        config.setProxyDescription(props.getProperty("proxy_description"));
 	        config.setAuthVerification(Boolean.parseBoolean(props.getProperty("auth_verification")));
 	        
 	        return config;
@@ -53,10 +56,13 @@ public class ProxyConfigLoader {
     	props.setProperty("proxy_port", "13371");
         props.setProperty("target_host", "localhost");
         props.setProperty("target_port", "25565");
+        props.setProperty("concurrent_ip_connection_limit", "2");
+        props.setProperty("max_ip_connections_per_second", "3");
+        props.setProperty("max_subnet_connections_per_second", "10");
+        props.setProperty("failed_protocol_punishment_seconds", "30");
+        props.setProperty("failed_login_punishment_seconds", "10");
+        props.setProperty("failed_authentication_punishment_seconds", "86400");
         props.setProperty("jwt_secret", "CHANGE_ME_IMMEDIATELY_THIS_IS_NOT_SAFE");
-        props.setProperty("proxy_version_protocol_minimum", "774");
-        props.setProperty("proxy_version_protocol_maximum", "774");
-        props.setProperty("proxy_description", "Powered by Cascade");
         props.setProperty("auth_verification", "true");
 
         try (Writer writer = new OutputStreamWriter(
