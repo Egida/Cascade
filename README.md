@@ -35,7 +35,8 @@ Minecraft-native Layer 7 DDoS protection — all without requiring mods or offli
 1. Client connects to the proxy.
 2. If the cookie token is invalid:
    
-   - Proxy authenticates the player with Mojang.
+   - Proxy authenticates the player with Mojang. (This can only fail if a bot sends the request, the vanilla Minecraft client warns the user of their expired session before joining the server. If a failed login is triggered the IP is banned)
+   
    - Issues a valid cookie token.
      
    - Client reconnects.
@@ -49,6 +50,7 @@ Minecraft-native Layer 7 DDoS protection — all without requiring mods or offli
 ## Why This Beats Traditional Layer 7 DDoS Protection
 
 - No packets ever reach the real backend until the client has authenticated with Mojang servers
+
 - Impossible to spoof or fake tokens
   
 - Backend doesn't require any mods or plugins
@@ -59,6 +61,13 @@ Minecraft-native Layer 7 DDoS protection — all without requiring mods or offli
 
 It is recommended to change the JWT secret immediately when going into production.  
 If multiple nodes are connected through an Anycast network, all nodes must use the same JWT secret to ensure proper functionality.
+
+## Rate limits
+ - Per IP rate limits
+ 
+ - Per subnet rate limits
+ 
+ - Local and global connection limits
 
 ## License
 MIT

@@ -135,6 +135,11 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
 
         GameProfile profile = getGameProfile(ctx, CascadeBootstrap.CONFIG.isAuthVerification(), sharedSecret);
 
+        if(profile == null) {
+	        BanManager.ban(ctx, 1000 * 60 * 60 * 24);
+	    	ctx.close();
+        }
+        
         enableEncryption(ctx.pipeline(), sharedSecret);
         sendLoginSuccess(ctx, profile);
         
@@ -327,9 +332,6 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
     private GameProfile getGameProfile(ChannelHandlerContext ctx, boolean onlineMode, byte[] sharedSecret) {
     	if(onlineMode) {
 	    	GameProfile profile = authenticate(ctx, sharedSecret);
-	        if (profile == null) {
-	            ctx.close();
-	        }
 	        return profile;
     	} else {
     		return new GameProfile(UUID.randomUUID(), "", null);
