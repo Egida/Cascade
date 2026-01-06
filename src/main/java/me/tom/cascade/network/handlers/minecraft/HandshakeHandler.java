@@ -1,4 +1,4 @@
-package me.tom.cascade.network.handlers;
+package me.tom.cascade.network.handlers.minecraft;
 
 import static me.tom.cascade.network.protocol.ProtocolState.LOGIN;
 import static me.tom.cascade.network.protocol.ProtocolState.TRANSFER;

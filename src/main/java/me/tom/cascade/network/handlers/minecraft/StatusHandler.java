@@ -1,4 +1,4 @@
-package me.tom.cascade.network.handlers;
+package me.tom.cascade.network.handlers.minecraft;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

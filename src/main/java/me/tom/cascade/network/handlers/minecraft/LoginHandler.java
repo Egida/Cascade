@@ -1,4 +1,4 @@
-package me.tom.cascade.network.handlers;
+package me.tom.cascade.network.handlers.minecraft;
 
 import static me.tom.cascade.network.protocol.ProtocolVersion.MINECRAFT_1_21_2;
 import static me.tom.cascade.network.protocol.ProtocolVersion.UNKNOWN;
@@ -36,6 +36,7 @@ import me.tom.cascade.crypto.AesEncryptHandler;
 import me.tom.cascade.crypto.Crypto;
 import me.tom.cascade.network.BanManager;
 import me.tom.cascade.network.StrikeManager;
+import me.tom.cascade.network.handlers.ConnectionHandler;
 import me.tom.cascade.network.handlers.forward.ClientToServerHandler;
 import me.tom.cascade.network.handlers.forward.ServerToClientHandler;
 import me.tom.cascade.network.pipeline.BackendInitializer;

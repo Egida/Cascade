@@ -1,4 +1,4 @@
-package me.tom.cascade.network.handlers;
+package me.tom.cascade.network.handlers.minecraft;
 
 public enum LoginState {
     WAITING_FOR_LOGIN_START,

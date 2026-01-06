@@ -1,4 +1,4 @@
-package me.tom.cascade.network.handlers;
+package me.tom.cascade.network.handlers.limit;
 
 import java.net.InetSocketAddress;
 

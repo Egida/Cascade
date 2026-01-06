@@ -4,13 +4,13 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import me.tom.cascade.CascadeBootstrap;
 import me.tom.cascade.network.NetworkSide;
-import me.tom.cascade.network.handlers.BanCheckHandler;
 import me.tom.cascade.network.handlers.ConnectionHandler;
-import me.tom.cascade.network.handlers.GlobalLimitHandler;
-import me.tom.cascade.network.handlers.HandshakeHandler;
-import me.tom.cascade.network.handlers.IpConnectionLimitHandler;
-import me.tom.cascade.network.handlers.IpRateLimitHandler;
-import me.tom.cascade.network.handlers.SubnetLimitHandler;
+import me.tom.cascade.network.handlers.limit.BanCheckHandler;
+import me.tom.cascade.network.handlers.limit.GlobalLimitHandler;
+import me.tom.cascade.network.handlers.limit.IpConnectionLimitHandler;
+import me.tom.cascade.network.handlers.limit.IpRateLimitHandler;
+import me.tom.cascade.network.handlers.limit.SubnetLimitHandler;
+import me.tom.cascade.network.handlers.minecraft.HandshakeHandler;
 import me.tom.cascade.network.protocol.codec.PacketDecoder;
 import me.tom.cascade.network.protocol.codec.PacketEncoder;
 import me.tom.cascade.network.protocol.codec.PacketFramer;
@@ -20,7 +20,7 @@ public class PipelineInitializer extends ChannelInitializer<SocketChannel> {
 	private static final GlobalLimitHandler GLOBAL_LIMIT_HANDLER = new GlobalLimitHandler();
 	private static final IpConnectionLimitHandler CONNECTION_LIMIT_HANDLER = new IpConnectionLimitHandler(CascadeBootstrap.CONFIG.getConcurrentIpConnectionLimit());
 	private static final SubnetLimitHandler SUBNET_LIMIT_HANDLER = new SubnetLimitHandler(CascadeBootstrap.CONFIG.getMaxIpConnectionsPerSecond());
-	private static final IpRateLimitHandler RATE_LIMIT_HANDLER = new IpRateLimitHandler(3);
+	private static final IpRateLimitHandler RATE_LIMIT_HANDLER = new IpRateLimitHandler(CascadeBootstrap.CONFIG.getMaxIpConnectionsPerSecond());
 
     @Override
     protected void initChannel(SocketChannel ch) {

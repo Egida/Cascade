@@ -1,11 +1,11 @@
 package me.tom.cascade.network.protocol;
 
 import io.netty.channel.SimpleChannelInboundHandler;
-import me.tom.cascade.network.handlers.ConfigurationHandler;
-import me.tom.cascade.network.handlers.HandshakeHandler;
-import me.tom.cascade.network.handlers.LoginHandler;
-import me.tom.cascade.network.handlers.StatusHandler;
-import me.tom.cascade.network.handlers.TransferHandler;
+import me.tom.cascade.network.handlers.minecraft.ConfigurationHandler;
+import me.tom.cascade.network.handlers.minecraft.HandshakeHandler;
+import me.tom.cascade.network.handlers.minecraft.LoginHandler;
+import me.tom.cascade.network.handlers.minecraft.StatusHandler;
+import me.tom.cascade.network.handlers.minecraft.TransferHandler;
 import me.tom.cascade.network.protocol.packet.Packet;
 import me.tom.cascade.network.protocol.packet.PacketRegistry;
 
