@@ -36,6 +36,10 @@ public class MojangSessionService {
             conn.setRequestMethod("GET");
 
             int code = conn.getResponseCode();
+            if(code == 429) {
+            	throw new RuntimeException("Too many requests to Mojang servers!");
+            }
+            
             if (code != 200) {
                 return null;
             }

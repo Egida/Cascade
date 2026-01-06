@@ -106,8 +106,7 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
                 int strikes = StrikeManager.addStrike(ctx);
 
                 if (strikes >= 3) {
-                    long banMillis = (long) (Math.pow(strikes, 2) * 10000L);
-                    BanManager.ban(ctx, banMillis);
+                    BanManager.ban(ctx, 10000L);
                 }
 
                 ctx.close();

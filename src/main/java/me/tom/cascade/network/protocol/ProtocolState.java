@@ -31,4 +31,8 @@ public enum ProtocolState {
 	public Class<? extends SimpleChannelInboundHandler<Packet>> getHandler() {
 		return handler;
 	}
+	
+	public static boolean isValidProtocolState(int state) {
+		return state >= 0 && state < values().length;
+	}
 }

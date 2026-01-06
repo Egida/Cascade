@@ -27,6 +27,11 @@ public class HandshakeHandler extends SimpleChannelInboundHandler<Packet> {
     }
 	
 	private void onHandshake(ChannelHandlerContext ctx, HandshakePacket packet) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		if(!ProtocolState.isValidProtocolState(packet.getNextState())) {
+			ctx.close();
+			return;
+		}
+		
 		ProtocolState nextState = ProtocolState.values()[packet.getNextState()];
 
 		boolean serverTransfer = nextState == TRANSFER;
