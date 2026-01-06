@@ -2,19 +2,21 @@ package me.tom.cascade.network.protocol.packet.packets.clientbound;
 
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import me.tom.cascade.network.protocol.packet.Packet;
 import me.tom.cascade.network.protocol.types.Utf8String;
 
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
 public class StatusResponsePacket implements Packet {
 
     public String json;
 
     @Override
     public void decode(ByteBuf in) {
-    	Utf8String.read(in, 32767);
+    	json = Utf8String.read(in, 32767);
     }
 
     @Override

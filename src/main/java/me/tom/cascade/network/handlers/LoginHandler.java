@@ -47,6 +47,7 @@ import me.tom.cascade.network.protocol.codec.PacketEncoder;
 import me.tom.cascade.network.protocol.codec.PacketFramer;
 import me.tom.cascade.network.protocol.packet.Packet;
 import me.tom.cascade.network.protocol.packet.packets.clientbound.CookieRequestPacket;
+import me.tom.cascade.network.protocol.packet.packets.clientbound.DisconnectPacket;
 import me.tom.cascade.network.protocol.packet.packets.clientbound.EncryptionResponsePacket;
 import me.tom.cascade.network.protocol.packet.packets.clientbound.LoginSuccessPacket;
 import me.tom.cascade.network.protocol.packet.packets.clientbound.OldLoginSuccessPacket;
@@ -86,6 +87,12 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
 
     private void onLoginStart(ChannelHandlerContext ctx, LoginStartPacket packet) {
     	if(loginState != LoginState.WAITING_FOR_LOGIN_START) {
+    		ctx.close();
+    		return;
+    	}
+    	
+    	if(!CascadeBootstrap.SERVER_CACHE.isOnline()) {
+    		ctx.writeAndFlush(new DisconnectPacket("{\"text\":\"§cProxy configuration error: backend is unreachable.\"}"));
     		ctx.close();
     		return;
     	}
