@@ -9,6 +9,7 @@ import me.tom.cascade.network.handlers.GlobalLimitHandler;
 import me.tom.cascade.network.handlers.HandshakeHandler;
 import me.tom.cascade.network.handlers.IpConnectionLimitHandler;
 import me.tom.cascade.network.handlers.IpRateLimitHandler;
+import me.tom.cascade.network.handlers.SubnetLimitHandler;
 import me.tom.cascade.network.protocol.codec.PacketDecoder;
 import me.tom.cascade.network.protocol.codec.PacketEncoder;
 import me.tom.cascade.network.protocol.codec.PacketFramer;
@@ -17,6 +18,7 @@ public class PipelineInitializer extends ChannelInitializer<SocketChannel> {
 	private static final BanCheckHandler BAN_CHECK_HANDLER = new BanCheckHandler();
 	private static final GlobalLimitHandler GLOBAL_LIMIT_HANDLER = new GlobalLimitHandler();
 	private static final IpConnectionLimitHandler CONNECTION_LIMIT_HANDLER = new IpConnectionLimitHandler(2);
+	private static final SubnetLimitHandler SUBNET_LIMIT_HANDLER = new SubnetLimitHandler();
 	private static final IpRateLimitHandler RATE_LIMIT_HANDLER = new IpRateLimitHandler(3);
 
     @Override
@@ -25,6 +27,7 @@ public class PipelineInitializer extends ChannelInitializer<SocketChannel> {
     		.addLast("ban-checker", BAN_CHECK_HANDLER)
 			.addLast("global-rate-limiter", GLOBAL_LIMIT_HANDLER)
         	.addLast("per-ip-limiter", CONNECTION_LIMIT_HANDLER)
+        	.addLast("subnet-limit", SUBNET_LIMIT_HANDLER)
         	.addLast("per-ip-rate-limit", RATE_LIMIT_HANDLER)
             .addLast("packet-framer", new PacketFramer())
             .addLast("packet-decoder", new PacketDecoder(NetworkSide.SERVERBOUND))
