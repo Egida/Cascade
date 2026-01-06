@@ -1,6 +1,6 @@
 package me.tom.cascade.network.handlers;
 
-import static me.tom.cascade.network.protocol.ProtocolVersion.*;
+import static me.tom.cascade.network.protocol.ProtocolVersion.MINECRAFT_1_21_2;
 import static me.tom.cascade.network.protocol.ProtocolVersion.UNKNOWN;
 
 import java.lang.reflect.InvocationTargetException;
@@ -12,6 +12,7 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -33,6 +34,8 @@ import me.tom.cascade.auth.MojangSessionService;
 import me.tom.cascade.crypto.AesDecryptHandler;
 import me.tom.cascade.crypto.AesEncryptHandler;
 import me.tom.cascade.crypto.Crypto;
+import me.tom.cascade.network.BanManager;
+import me.tom.cascade.network.StrikeManager;
 import me.tom.cascade.network.handlers.forward.ClientToServerHandler;
 import me.tom.cascade.network.handlers.forward.ServerToClientHandler;
 import me.tom.cascade.network.pipeline.BackendInitializer;
@@ -57,7 +60,9 @@ import me.tom.cascade.network.protocol.packet.packets.serverbound.LoginStartPack
 
 @RequiredArgsConstructor
 public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
-
+	private LoginState loginState = LoginState.WAITING_FOR_LOGIN_START;
+	private boolean cookieHandled;
+	
     private final SecureRandom random = new SecureRandom();
     private final byte[] verifyToken = new byte[4];
     private String username;
@@ -80,12 +85,37 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
     }
 
     private void onLoginStart(ChannelHandlerContext ctx, LoginStartPacket packet) {
+    	if(loginState != LoginState.WAITING_FOR_LOGIN_START) {
+    		ctx.close();
+    		return;
+    	}
+    	
         this.username = packet.getName();
         this.uuid = packet.getUuid();
         ctx.writeAndFlush(new CookieRequestPacket("cascade:token"));
+        
+        ctx.executor().schedule(() -> {
+            if (loginState != LoginState.COMPLETED && !ctx.channel().attr(ProtocolAttributes.TRANSFER).get().equals(Boolean.TRUE)) {
+                int strikes = StrikeManager.addStrike(ctx);
+
+                if (strikes >= 3) {
+                    long banMillis = (long) (Math.pow(strikes, 2) * 10000L);
+                    BanManager.ban(ctx, banMillis);
+                }
+
+                ctx.close();
+            }
+        }, 10, TimeUnit.SECONDS);
+        
+        loginState = LoginState.WAITING_FOR_COOKIE_RESPONSE;
     }
 
     private void onEncryptionResponse(ChannelHandlerContext ctx, EncryptionResponsePacket packet) {
+    	if(loginState != LoginState.WAITING_FOR_ENCRYPTION_RESPONSE) {
+    		ctx.close();
+    		return;
+    	}
+    	
         PrivateKey privateKey = Crypto.KEY_PAIR.getPrivate();
 
         byte[] sharedSecret = Crypto.rsaDecrypt(packet.getSharedSecret(), privateKey);
@@ -100,11 +130,13 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
 
         enableEncryption(ctx.pipeline(), sharedSecret);
         sendLoginSuccess(ctx, profile);
+        
+        loginState = LoginState.WAITING_FOR_LOGIN_ACK;
     }
 
     private void sendLoginSuccess(ChannelHandlerContext ctx, GameProfile profile) {
         ProtocolVersion protocolVersion = ctx.channel().attr(ProtocolAttributes.PROTOCOL_VERSION).get();
-        System.out.println(protocolVersion);
+        
         if (protocolVersion != null && protocolVersion.isBefore(MINECRAFT_1_21_2)) {
             ctx.writeAndFlush(new OldLoginSuccessPacket(profile, false));
         } else {
@@ -113,10 +145,22 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
     }
 
     private void onCookieResponse(ChannelHandlerContext ctx, CookieResponsePacket packet) {
+    	if(loginState != LoginState.WAITING_FOR_COOKIE_RESPONSE) {
+    		ctx.close();
+    		return;
+    	}
+    	
+    	if(cookieHandled) {
+    		ctx.close();
+    		return;
+    	}
+    	
+    	cookieHandled = true;
+    	
         if (!"cascade:token".equals(packet.getKey())) {
             return;
         }
-
+        
         Channel client = ctx.channel();
         ProtocolVersion protocolVersion = client.attr(ProtocolAttributes.PROTOCOL_VERSION).get();
 
@@ -131,6 +175,8 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
             );
 
             ctx.writeAndFlush(encryptionRequest);
+            
+            loginState = LoginState.WAITING_FOR_ENCRYPTION_RESPONSE;
             return;
         }
 
@@ -202,6 +248,13 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
     private void onLoginAcknowledged(ChannelHandlerContext ctx) throws InstantiationException, IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 
+    	if(loginState != LoginState.WAITING_FOR_LOGIN_ACK) {
+    		ctx.close();
+    		return;
+    	}
+    	
+    	loginState = LoginState.COMPLETED;
+    	
         String ip = ((InetSocketAddress) ctx.channel().remoteAddress()).getHostString();
 
         String jwt = Jwts.builder()

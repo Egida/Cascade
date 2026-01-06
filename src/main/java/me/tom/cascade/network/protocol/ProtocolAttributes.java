@@ -11,4 +11,7 @@ public class ProtocolAttributes {
     
     public static final AttributeKey<Boolean> TRANSFER =
             AttributeKey.valueOf("cascade-transfer");
+    
+    public static final AttributeKey<Boolean> LOGIN_COMPLETED =
+            AttributeKey.valueOf("cascade-login-completed");
 }

@@ -38,9 +38,7 @@ public class IpRateLimitHandler extends ChannelInboundHandlerAdapter {
 
         int current = counter.incrementAndGet();
 
-        System.out.println(current);
         if (current > maxConnectionsPerSecond) {
-        	System.out.println("limit?");
             ctx.close();
             return;
         }
