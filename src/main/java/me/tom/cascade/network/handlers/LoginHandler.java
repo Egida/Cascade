@@ -1,6 +1,6 @@
 package me.tom.cascade.network.handlers;
 
-import static me.tom.cascade.network.protocol.ProtocolVersion.MINECRAFT_1_21_1;
+import static me.tom.cascade.network.protocol.ProtocolVersion.*;
 import static me.tom.cascade.network.protocol.ProtocolVersion.UNKNOWN;
 
 import java.lang.reflect.InvocationTargetException;
@@ -104,7 +104,8 @@ public class LoginHandler extends SimpleChannelInboundHandler<Packet> {
 
     private void sendLoginSuccess(ChannelHandlerContext ctx, GameProfile profile) {
         ProtocolVersion protocolVersion = ctx.channel().attr(ProtocolAttributes.PROTOCOL_VERSION).get();
-        if (protocolVersion != null && protocolVersion.isBefore(MINECRAFT_1_21_1)) {
+        System.out.println(protocolVersion);
+        if (protocolVersion != null && protocolVersion.isBefore(MINECRAFT_1_21_2)) {
             ctx.writeAndFlush(new OldLoginSuccessPacket(profile, false));
         } else {
             ctx.writeAndFlush(new LoginSuccessPacket(profile));
