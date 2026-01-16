@@ -1,0 +1,8 @@
+{
+  "id": "cascade",
+  "name": "Cascade",
+  "version": "1.0.0",
+  "main": "me.tom.velocity.App",
+  "authors": ["Tom"],
+  "dependencies": []
+}
