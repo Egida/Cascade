@@ -22,8 +22,8 @@ public class PipelineInitializer extends ChannelInitializer<SocketChannel> {
     	ch.pipeline()
     		.addLast(new PacketFramer())
     		.addLast(new PacketDecoder(NetworkSide.SERVERBOUND))
+    		.addLast(new PacketEncoder(NetworkSide.CLIENTBOUND))
     		.addLast(new HandshakeHandler())
-    		.addLast(new LoginStartHandler())
-    		.addLast(new PacketEncoder(NetworkSide.CLIENTBOUND));
+    		.addLast(new LoginStartHandler());
     }
 }
