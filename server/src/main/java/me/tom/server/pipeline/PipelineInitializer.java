@@ -10,6 +10,7 @@ import me.tom.common.network.protocol.packet.codec.PacketDecoder;
 import me.tom.common.network.protocol.packet.codec.PacketEncoder;
 import me.tom.common.network.protocol.packet.codec.PacketFramer;
 import me.tom.server.handlers.HandshakeHandler;
+import me.tom.server.handlers.LoginStartHandler;
 
 public class PipelineInitializer extends ChannelInitializer<SocketChannel> {
 	
@@ -22,6 +23,7 @@ public class PipelineInitializer extends ChannelInitializer<SocketChannel> {
     		.addLast(new PacketFramer())
     		.addLast(new PacketDecoder(NetworkSide.SERVERBOUND))
     		.addLast(new HandshakeHandler())
+    		.addLast(new LoginStartHandler())
     		.addLast(new PacketEncoder(NetworkSide.CLIENTBOUND));
     }
 }

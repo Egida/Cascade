@@ -8,6 +8,7 @@ import lombok.var;
 import me.tom.common.network.NetworkSide;
 import me.tom.common.network.protocol.ProtocolVersion;
 import me.tom.common.network.protocol.packet.packets.serverbound.HandshakePacket;
+import me.tom.common.network.protocol.packet.packets.serverbound.LoginStartPacket;
 
 public enum PacketRegistry {
 
@@ -22,7 +23,9 @@ public enum PacketRegistry {
     },
     
     LOGIN {
-    	
+    	{
+    		register(NetworkSide.SERVERBOUND, 0x00, LoginStartPacket.class, ProtocolVersion.allVersions());
+    	}
     },
     
     TRANSFER {
