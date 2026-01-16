@@ -18,7 +18,6 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
 	
     @Override
     protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf out) throws Exception {
-        System.out.println("sent something bruh");
         ProtocolState state = ctx.channel().attr(ProtocolAttributes.STATE).get();
         ProtocolVersion protocolVersion = ctx.channel().attr(ProtocolAttributes.PROTOCOL_VERSION).get();
 
@@ -28,7 +27,6 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
         if (packetId == -1) {
         	throw new EncoderException("Unknown packet ID for packet " + packet);
         }
-        System.out.println(packet);
 
         VarInt.write(body, packetId);
         packet.encode(body);

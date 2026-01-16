@@ -9,6 +9,7 @@ import me.tom.common.network.NetworkSide;
 import me.tom.common.network.protocol.ProtocolVersion;
 import me.tom.common.network.protocol.packet.packets.clientbound.LoginSuccessPacket;
 import me.tom.common.network.protocol.packet.packets.serverbound.HandshakePacket;
+import me.tom.common.network.protocol.packet.packets.serverbound.LoginAckPacket;
 import me.tom.common.network.protocol.packet.packets.serverbound.LoginStartPacket;
 
 public enum PacketRegistry {
@@ -26,6 +27,7 @@ public enum PacketRegistry {
     LOGIN {
     	{
     		register(NetworkSide.SERVERBOUND, 0x00, LoginStartPacket.class, ProtocolVersion.allVersions());
+    		register(NetworkSide.SERVERBOUND, 0x03, LoginAckPacket.class, ProtocolVersion.allVersions());
     		
     		register(NetworkSide.CLIENTBOUND, 0x02, LoginSuccessPacket.class, ProtocolVersion.allVersions());
     	}
