@@ -12,4 +12,8 @@ public enum ProtocolVersion {
 
     private final int protocol;
     private final String name;
+
+    public static ProtocolVersion[] allVersions() {
+        return values();
+    }
 }

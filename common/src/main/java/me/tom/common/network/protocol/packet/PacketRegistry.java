@@ -7,14 +7,31 @@ import java.util.Map;
 import lombok.var;
 import me.tom.common.network.NetworkSide;
 import me.tom.common.network.protocol.ProtocolVersion;
+import me.tom.common.network.protocol.packet.packets.serverbound.HandshakePacket;
 
 public enum PacketRegistry {
 
-    HANDSHAKE,
-    STATUS,
-    LOGIN,
-    TRANSFER,
-    CONFIGURATION;
+    HANDSHAKE {
+    	{
+    		register(NetworkSide.SERVERBOUND, 0x00, HandshakePacket.class, ProtocolVersion.allVersions());
+    	}
+    },
+    
+    STATUS {
+    	
+    },
+    
+    LOGIN {
+    	
+    },
+    
+    TRANSFER {
+    	
+    },
+    
+    CONFIGURATION {
+    	
+    };
 
     private static class DirectionRegistry {
         final Map<Integer, Class<? extends Packet>> idToClass = new HashMap<>();

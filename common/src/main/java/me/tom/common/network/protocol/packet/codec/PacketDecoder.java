@@ -32,6 +32,7 @@ public class PacketDecoder extends MessageToMessageDecoder<ByteBuf> {
 
         Packet packet = clazz.getConstructor().newInstance();
         packet.decode(in);
+        System.out.println(packet);
         
         out.add(packet);
     }
