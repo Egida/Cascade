@@ -7,8 +7,9 @@ import java.util.Map;
 import lombok.var;
 import me.tom.common.network.NetworkSide;
 import me.tom.common.network.protocol.ProtocolVersion;
-import me.tom.common.network.protocol.packet.packets.clientbound.FinishConfigurationPacket;
+import me.tom.common.network.protocol.packet.packets.clientbound.FinishConfigPacket;
 import me.tom.common.network.protocol.packet.packets.clientbound.LoginSuccessPacket;
+import me.tom.common.network.protocol.packet.packets.serverbound.AckFinishConfigPacket;
 import me.tom.common.network.protocol.packet.packets.serverbound.HandshakePacket;
 import me.tom.common.network.protocol.packet.packets.serverbound.LoginAckPacket;
 import me.tom.common.network.protocol.packet.packets.serverbound.LoginStartPacket;
@@ -40,8 +41,14 @@ public enum PacketRegistry {
     
     CONFIGURATION {
     	{
-    		register(NetworkSide.CLIENTBOUND, 0x03, FinishConfigurationPacket.class, ProtocolVersion.allVersions());
+    		register(NetworkSide.CLIENTBOUND, 0x03, FinishConfigPacket.class, ProtocolVersion.allVersions());
+
+    		register(NetworkSide.SERVERBOUND, 0x03, AckFinishConfigPacket.class, ProtocolVersion.allVersions());
     	}
+    },
+    
+    PLAY {
+    	
     };
 
     private static class DirectionRegistry {

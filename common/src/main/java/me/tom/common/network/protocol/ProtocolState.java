@@ -11,7 +11,8 @@ public enum ProtocolState {
     STATUS(PacketRegistry.STATUS),
     LOGIN(PacketRegistry.LOGIN),
     TRANSFER(PacketRegistry.TRANSFER),
-    CONFIGURATION(PacketRegistry.CONFIGURATION);
+    CONFIGURATION(PacketRegistry.CONFIGURATION),
+    PLAY(PacketRegistry.PLAY);
 
     private final PacketRegistry registry;
 }
