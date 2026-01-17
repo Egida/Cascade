@@ -9,6 +9,7 @@ import me.tom.common.network.NetworkSide;
 import me.tom.common.network.protocol.ProtocolVersion;
 import me.tom.common.network.protocol.packet.packets.clientbound.FinishConfigPacket;
 import me.tom.common.network.protocol.packet.packets.clientbound.LoginSuccessPacket;
+import me.tom.common.network.protocol.packet.packets.clientbound.PluginMessage;
 import me.tom.common.network.protocol.packet.packets.serverbound.AckFinishConfigPacket;
 import me.tom.common.network.protocol.packet.packets.serverbound.HandshakePacket;
 import me.tom.common.network.protocol.packet.packets.serverbound.LoginAckPacket;
@@ -48,7 +49,9 @@ public enum PacketRegistry {
     },
     
     PLAY {
-    	
+    	{
+    		register(NetworkSide.CLIENTBOUND, 0x18, PluginMessage.class, ProtocolVersion.allVersions());
+    	}
     };
 
     private static class DirectionRegistry {
