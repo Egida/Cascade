@@ -1,6 +1,7 @@
 package me.tom.server;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.AllArgsConstructor;
@@ -8,7 +9,11 @@ import me.tom.server.pipeline.PipelineInitializer;
 
 @AllArgsConstructor
 public abstract class Server extends Thread {
-    private int port;
+    protected int port;
+
+    public int getPort() {
+        return port;
+    }
 
     @Override
     public void run() {
@@ -21,11 +26,12 @@ public abstract class Server extends Thread {
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new PipelineInitializer());
 
-            bootstrap.bind(port).sync()
-                     .channel()
-                     .closeFuture()
-                     .sync();
+            ChannelFuture channelFuture = bootstrap.bind(port).sync();
 
+            this.port = ((java.net.InetSocketAddress) 
+                         channelFuture.channel().localAddress()).getPort();
+
+            channelFuture.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
