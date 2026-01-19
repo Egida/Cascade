@@ -1,9 +1,9 @@
-package me.tom.common.network.protocol.packet.packets.serverbound;
+package me.tom.common.network.protocol.packet.packets.clientbound.config;
 
 import io.netty.buffer.ByteBuf;
 import me.tom.common.network.protocol.packet.Packet;
 
-public class AckFinishConfigPacket implements Packet {
+public class FinishConfigPacket implements Packet {
 	@Override
 	public void decode(ByteBuf in) throws Exception {}
 

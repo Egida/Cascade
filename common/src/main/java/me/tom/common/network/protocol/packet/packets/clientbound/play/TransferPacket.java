@@ -1,4 +1,4 @@
-package me.tom.common.network.protocol.packet.packets.clientbound;
+package me.tom.common.network.protocol.packet.packets.clientbound.play;
 
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
@@ -9,21 +9,19 @@ import me.tom.common.network.protocol.packet.types.VarInt;
 
 @AllArgsConstructor
 @Getter
-public class PluginMessage implements Packet {
-	private String identifier;
-	private byte[] data;
+public class TransferPacket implements Packet {
+	private String host;
+	private int port;
 	
 	@Override
 	public void decode(ByteBuf in) throws Exception {
-		Utf8String.read(in, 32767);
-		data = new byte[VarInt.read(in)];
-		in.readBytes(data);
+		host = Utf8String.read(in, 255);
+		port = VarInt.read(in);
 	}
-	
+
 	@Override
 	public void encode(ByteBuf out) throws Exception {
-		Utf8String.write(out, identifier, 32767);
-		VarInt.write(out, data.length);
-		out.writeBytes(data);
+		Utf8String.write(out, host, 255);
+		VarInt.write(out, port);
 	}
 }

@@ -1,4 +1,4 @@
-package me.tom.common.network.protocol.packet.packets.clientbound;
+package me.tom.common.network.protocol.packet.packets.clientbound.login;
 
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;

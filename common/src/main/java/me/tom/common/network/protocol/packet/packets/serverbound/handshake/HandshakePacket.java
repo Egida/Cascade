@@ -1,4 +1,4 @@
-package me.tom.common.network.protocol.packet.packets.serverbound;
+package me.tom.common.network.protocol.packet.packets.serverbound.handshake;
 
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;

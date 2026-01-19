@@ -7,13 +7,19 @@ import java.util.Map;
 import lombok.var;
 import me.tom.common.network.NetworkSide;
 import me.tom.common.network.protocol.ProtocolVersion;
-import me.tom.common.network.protocol.packet.packets.clientbound.FinishConfigPacket;
-import me.tom.common.network.protocol.packet.packets.clientbound.LoginSuccessPacket;
-import me.tom.common.network.protocol.packet.packets.clientbound.PluginMessage;
-import me.tom.common.network.protocol.packet.packets.serverbound.AckFinishConfigPacket;
-import me.tom.common.network.protocol.packet.packets.serverbound.HandshakePacket;
-import me.tom.common.network.protocol.packet.packets.serverbound.LoginAckPacket;
-import me.tom.common.network.protocol.packet.packets.serverbound.LoginStartPacket;
+import me.tom.common.network.protocol.packet.packets.clientbound.config.FinishConfigPacket;
+import me.tom.common.network.protocol.packet.packets.clientbound.config.RegistryDataPacket;
+import me.tom.common.network.protocol.packet.packets.clientbound.login.LoginPluginRequestPacket;
+import me.tom.common.network.protocol.packet.packets.clientbound.login.LoginSuccessPacket;
+import me.tom.common.network.protocol.packet.packets.clientbound.play.KeepAlivePacket;
+import me.tom.common.network.protocol.packet.packets.clientbound.play.LoginPacket;
+import me.tom.common.network.protocol.packet.packets.clientbound.play.TransferPacket;
+import me.tom.common.network.protocol.packet.packets.serverbound.config.AckFinishConfigPacket;
+import me.tom.common.network.protocol.packet.packets.serverbound.config.PluginMessage;
+import me.tom.common.network.protocol.packet.packets.serverbound.handshake.HandshakePacket;
+import me.tom.common.network.protocol.packet.packets.serverbound.login.LoginAckPacket;
+import me.tom.common.network.protocol.packet.packets.serverbound.login.LoginPluginResponsePacket;
+import me.tom.common.network.protocol.packet.packets.serverbound.login.LoginStartPacket;
 
 public enum PacketRegistry {
 
@@ -31,8 +37,10 @@ public enum PacketRegistry {
     	{
     		register(NetworkSide.SERVERBOUND, 0x00, LoginStartPacket.class, ProtocolVersion.allVersions());
     		register(NetworkSide.SERVERBOUND, 0x03, LoginAckPacket.class, ProtocolVersion.allVersions());
+    		register(NetworkSide.SERVERBOUND, 0x02, LoginPluginResponsePacket.class, ProtocolVersion.allVersions());
     		
     		register(NetworkSide.CLIENTBOUND, 0x02, LoginSuccessPacket.class, ProtocolVersion.allVersions());
+    		register(NetworkSide.CLIENTBOUND, 0x04, LoginPluginRequestPacket.class, ProtocolVersion.allVersions());
     	}
     },
     
@@ -43,14 +51,20 @@ public enum PacketRegistry {
     CONFIGURATION {
     	{
     		register(NetworkSide.CLIENTBOUND, 0x03, FinishConfigPacket.class, ProtocolVersion.allVersions());
-
+    		register(NetworkSide.CLIENTBOUND, 0x07, RegistryDataPacket.class, ProtocolVersion.allVersions());
+    		register(NetworkSide.CLIENTBOUND, 0x0B, TransferPacket.class, ProtocolVersion.allVersions());
+    		register(NetworkSide.CLIENTBOUND, 0x0E, me.tom.common.network.protocol.packet.packets.clientbound.config.KnownPacksPacket.class, ProtocolVersion.allVersions());
+    		register(NetworkSide.CLIENTBOUND, 0x01, PluginMessage.class, ProtocolVersion.allVersions());
+    		
     		register(NetworkSide.SERVERBOUND, 0x03, AckFinishConfigPacket.class, ProtocolVersion.allVersions());
+    		register(NetworkSide.SERVERBOUND, 0x07, me.tom.common.network.protocol.packet.packets.serverbound.config.KnownPacksPacket.class, ProtocolVersion.allVersions());
     	}
     },
     
     PLAY {
     	{
-    		register(NetworkSide.CLIENTBOUND, 0x18, PluginMessage.class, ProtocolVersion.allVersions());
+    		register(NetworkSide.CLIENTBOUND, 0x2B, KeepAlivePacket.class, ProtocolVersion.allVersions());
+    		register(NetworkSide.CLIENTBOUND, 0x30, LoginPacket.class, ProtocolVersion.allVersions());
     	}
     };
 

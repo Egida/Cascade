@@ -14,6 +14,11 @@ public class GameProfile {
     public UUID id;
     public String name;
     public Property[] properties;
+    
+    public GameProfile(UUID id, String name) {
+    	this.id = id;
+    	this.name = name;
+    } 
 
     public void write(ByteBuf out) {
         UuidType.write(out, id);
