@@ -1,73 +1,36 @@
-# Cascade
+# Cascade AntiBot (Beta)
 
-A lightweight proxy architecture that provides secure authentication, encrypted tunneling, and
-Minecraft-native Layer 7 DDoS protection — all without requiring mods or offline mode on the backend.
-
-![startup](https://github.com/Steinimfluss/Cascade/blob/main/images/status.png)
-> **Important Requirement**  
-> Your backend server **must support Minecraft transfer packets and cookie-based authentication**.  
-> This means Cascade only works with **Minecraft versions that include the official transfer system**  
-> (1.20.5+ and newer).  
-> Older versions **will not work**, because they do not support the required packet flow.  
-> You must create a firewall rule to only accept request from the Cascade node on your backend!
-
-## Features
-- Handles status requests
-
-- Cookie-based authentication flow
-
-- Mojang account verification
-
-- Encrypted tunneling to backend
-
-- No backend mods required
-
-- Works with a single proxy node
-
-- Minecraft-specific Layer 7 DDoS protection
-
-- Escalating punishments for invalid packets and improper logins
-
-- Identity filtering
-
+Cascade is an experimental anti‑bot system designed for modern Minecraft proxy environments.  
+It is currently **in beta** and **not recommended for production servers**.
 
 ## How It Works
-1. Client connects to the proxy.
-2. If the cookie token is invalid:
-   
-   - Proxy authenticates the player with Mojang. (This can only fail if a bot sends the request, the vanilla Minecraft client warns the user of their expired session before joining the server. If a failed login is triggered the IP is banned)
-   
-   - Issues a valid cookie token.
-     
-   - Client reconnects.
-     
-4. If the cookie token is valid:
-   
-   - Proxy tunnels the encrypted connection to the backend.
-     
-   - Backend sees a normal, signed Minecraft client.
 
-## Why This Beats Traditional Layer 7 DDoS Protection
+Cascade inserts itself into the player's connection path before they reach your real server.  
+The flow looks like this:
 
-- No packets ever reach the real backend until the client has authenticated with Mojang servers
+1. Client connects to the proxy
+2. Cascade intercepts the connection and redirects the player, while disabling Mojang authentication, to a lightweight limbo server
+3. The Cascade server performs a series of bot detection checks
+4. If the client passes, Cascade issues a transfer packet sending them to the real server
+5. If the client fails, the connection never reaches your backend
 
-- Impossible to spoof or fake tokens
-  
-- Backend doesn't require any mods or plugins
-  
-- Works with offline mode
-  
-- Works even with a single node
+This approach blocks bots before they can join your lobby or overload your backend or your proxy with authentication requests.
 
-It is recommended to change the JWT secret immediately when going into production.  
-If multiple nodes are connected through an Anycast network, all nodes must use the same JWT secret to ensure proper functionality.
+## Installation
 
-## Rate limits
- - Per IP rate limits
- 
- - Per subnet rate limits
- 
- - Local and global connection limits
+### 1. Install the Proxy Plugin
+Place the Cascade plugin JAR into your proxy’s `plugins/` folder.
 
-## License
-MIT
+### 2. Configure the Lobby (Optional)
+If you want to run the Cascade verification server separately, set:
+
+```bash
+cascade = "127.0.0.1:<port>"
+```
+
+### 3. Start the Cascade Server (Standalone Mode)
+If running separately:
+
+```bash
+java -jar server.jar <port>
+```
