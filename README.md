@@ -25,7 +25,7 @@ Place the Cascade plugin JAR into your proxy’s `plugins/` folder.
 If you want to run the Cascade verification server separately, set:
 
 ```bash
-lobby = "127.0.0.1:<port>"
+cascade = "127.0.0.1:<port>"
 ```
 
 ### 3. Start the Cascade Server (Standalone Mode)
