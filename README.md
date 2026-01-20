@@ -3,7 +3,7 @@
 Cascade is an experimental anti‑bot system designed for modern Minecraft proxy environments.  
 It is currently **in beta** and **not recommended for production servers**.
 
-##Why Cascade Is Different
+## Why Cascade Is Different
 
 Unlike traditional anti-bot systems that perform heavy verification steps, introduce visible delays, or require players to complete challenges, Cascade takes a minimal and seamless approach.
 Its design focuses on intercepting and queueing connections with almost no overhead, allowing it to absorb sudden bursts of traffic—even 1000 bots joining at once—without causing legitimate players to wait more than 10 seconds to enter the server.
