@@ -24,7 +24,7 @@ public class KeepAliveHandler extends ChannelInboundHandlerAdapter {
                 if (ctx.channel().isActive()) {
                     ctx.writeAndFlush(new KeepAlivePacket(rnd.nextLong()));
                 }
-            }, 0, 5, TimeUnit.SECONDS);
+            }, 0, 20, TimeUnit.SECONDS);
         }
     }
 

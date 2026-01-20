@@ -28,10 +28,13 @@ public abstract class Server extends Thread {
 
             ChannelFuture channelFuture = bootstrap.bind(port).sync();
 
-            this.port = ((java.net.InetSocketAddress) 
+            this.port = ((java.net.InetSocketAddress)
                          channelFuture.channel().localAddress()).getPort();
 
+            LoginQueueProcessor.start(worker.next());
+
             channelFuture.channel().closeFuture().sync();
+
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {

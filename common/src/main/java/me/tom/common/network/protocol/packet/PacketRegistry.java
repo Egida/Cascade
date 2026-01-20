@@ -55,6 +55,7 @@ public enum PacketRegistry {
     		register(NetworkSide.CLIENTBOUND, 0x0B, TransferPacket.class, ProtocolVersion.allVersions());
     		register(NetworkSide.CLIENTBOUND, 0x0E, me.tom.common.network.protocol.packet.packets.clientbound.config.KnownPacksPacket.class, ProtocolVersion.allVersions());
     		register(NetworkSide.CLIENTBOUND, 0x01, PluginMessage.class, ProtocolVersion.allVersions());
+    		register(NetworkSide.CLIENTBOUND, 0x04, KeepAlivePacket.class, ProtocolVersion.allVersions());
     		
     		register(NetworkSide.SERVERBOUND, 0x03, AckFinishConfigPacket.class, ProtocolVersion.allVersions());
     		register(NetworkSide.SERVERBOUND, 0x07, me.tom.common.network.protocol.packet.packets.serverbound.config.KnownPacksPacket.class, ProtocolVersion.allVersions());
